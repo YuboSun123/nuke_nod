@@ -1,0 +1,140 @@
+# --------------- 核威慑周度扫描（从威慑方视角） ---------------#
+# 作用域：ROOT = 威慑方（通常为核国家）
+# 前置条件：
+# - 已在 ROOT 侧设置 max_deterrence_range（4000/14000）
+# - 已保存 event_target:launch_site（火箭基地所在州）
+# - 在 ROOT 上累计 deterrence_countries_in_range_count（供本地化/展示用）
+refresh_deterrence_projection_from_root = {
+	set_variable = { max_deterrence_range = 0 }
+	set_variable = { var = deterrence_countries_in_range_count value = 0 }
+
+	# 同时支持“远程弱影响覆盖(14000km)”与“近距强影响覆盖(4000km)”
+	# 以最长射程展示在 nuclear_state_idea 内
+	if = {
+		limit = { is_special_project_completed = sp:sp_nuclear_warheads }
+		set_variable = { max_deterrence_range = 4000 }
+	}
+	if = {
+		limit = { is_special_project_completed = sp:sp_rockets_long_range_ballistic_missile }
+		set_variable = { max_deterrence_range = 14000 }
+	}
+
+	# 若没有任何可用射程则跳过
+	if = {
+		limit = { check_variable = { max_deterrence_range > 0 } }
+		# 若没有可用火箭基地则跳过
+		if = {
+			limit = {
+				any_owned_state = {
+					non_damaged_building_level = {
+						building = rocket_site
+						level > 0
+					}
+				}
+			}
+			# 必须保存“火箭基地所在州”，否则 distance_to 会失效
+			random_owned_state = {
+				limit = {
+					non_damaged_building_level = {
+						building = rocket_site
+						level > 0
+					}
+				}
+				save_event_target_as = launch_site
+			}
+
+			# 对所有国家进行扫描与打标（细节在下方 effect 内）
+			weekly_deterrence_scan_and_mark = yes
+		}
+	}
+}
+
+weekly_deterrence_scan_and_mark = {
+	# 临时标记 ROOT，用于 every_country 中排除自身（避免 tag/作用域比较不稳定）
+	set_country_flag = tmp_deterrence_scan_root
+	every_country = {
+		limit = {
+			# 排除 ROOT 自身
+			NOT = { has_country_flag = tmp_deterrence_scan_root }
+			capital_scope = {
+				OR = {
+					AND = {
+						ROOT = { is_special_project_completed = sp:sp_rockets_long_range_ballistic_missile }
+						distance_to = {
+							target = event_target:launch_site
+							value < 14000
+						}
+					}
+					AND = {
+						ROOT = { is_special_project_completed = sp:sp_nuclear_warheads }
+						distance_to = {
+							target = event_target:launch_site
+							value < 4000
+						}
+					}
+				}
+			}
+		}
+		ROOT = { add_to_variable = { var = deterrence_countries_in_range_count value = 1 } }
+		
+		# 记录“本月主要威慑来源”（用于本地化展示）
+		# 规则：强覆盖(4000km + 弹头)优先；强度相同则 major 优先；否则保留先前来源
+		set_variable = { var = tmp_deterrence_cur_source_is_strong value = 0 }
+		if = {
+			limit = {
+				ROOT = { is_special_project_completed = sp:sp_nuclear_warheads }
+				capital_scope = {
+					distance_to = {
+						target = event_target:launch_site
+						value < 4000
+					}
+				}
+			}
+			set_variable = { var = tmp_deterrence_cur_source_is_strong value = 1 }
+		}
+
+		if = {
+			limit = { NOT = { has_country_flag = deterrence_source_set } }
+			set_country_flag = deterrence_source_set
+			set_variable = { var = deterrence_primary_source value = ROOT }
+			set_variable = { var = deterrence_primary_source_is_strong value = tmp_deterrence_cur_source_is_strong }
+		}
+		else_if = {
+			# 当前为强覆盖且既有来源为弱覆盖 -> 覆盖
+			limit = {
+				check_variable = { var = tmp_deterrence_cur_source_is_strong value = 1 compare = equals }
+				check_variable = { var = deterrence_primary_source_is_strong value = 0 compare = equals }
+			}
+			set_variable = { var = deterrence_primary_source value = ROOT }
+			set_variable = { var = deterrence_primary_source_is_strong value = tmp_deterrence_cur_source_is_strong }
+		}
+		else_if = {
+			# 强度相同：major 覆盖 non-major
+			limit = {
+				OR = {
+					AND = {
+						check_variable = { var = tmp_deterrence_cur_source_is_strong value = 0 compare = equals }
+						check_variable = { var = deterrence_primary_source_is_strong value = 0 compare = equals }
+					}
+					AND = {
+						check_variable = { var = tmp_deterrence_cur_source_is_strong value = 1 compare = equals }
+						check_variable = { var = deterrence_primary_source_is_strong value = 1 compare = equals }
+					}
+				}
+				ROOT = { is_major = yes }
+				NOT = { var:deterrence_primary_source = { is_major = yes } }
+			}
+			set_variable = { var = deterrence_primary_source value = ROOT }
+			set_variable = { var = deterrence_primary_source_is_strong value = tmp_deterrence_cur_source_is_strong }
+		}
+
+		clear_variable = tmp_deterrence_cur_source_is_strong
+
+		# UI/本地化展示入口：被覆盖国家获得“被威慑状态”idea
+		if = {
+			limit = { NOT = { has_idea = deterrence_state_idea } }
+			add_ideas = deterrence_state_idea
+		}
+	}
+	clr_country_flag = tmp_deterrence_scan_root
+}

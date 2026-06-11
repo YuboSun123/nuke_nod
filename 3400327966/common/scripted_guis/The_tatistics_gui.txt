@@ -1,0 +1,320 @@
+scripted_gui = {
+	
+	global_notice_gui = {
+		window_name = "global_notice_window"
+		context_type = player_context
+		parent_window_name = topbar
+
+		ai_enabled = {
+			always = no
+		}
+
+		effects = {
+			icon_click = {
+				set_country_flag = open_the_country_list_gui
+				casualty_sort_total_refresh = yes
+			}
+		}
+	}
+	list_of_countries_guis = { 
+		window_name = "list_of_countries_window"
+		context_type = player_context
+		
+		visible = { has_country_flag = open_the_country_list_gui }
+
+		dynamic_lists = {
+			country_grid = {
+				array = global.national_statistical_data
+				change_scope = yes
+				entry_container = country_grid_entry
+				value = national_flag_value
+			}
+		}
+		properties = { 
+			flag = { image = "[THIS.GetFlag]" }
+		}
+
+		effects = {
+			close_button_click = {
+				clr_country_flag = open_the_country_list_gui
+			}
+			sort_total_click = {
+				casualty_sort_total_refresh = yes
+			}
+			state_total_0_click = {
+				if = {
+					limit = { has_country_flag = last_opened_state_list_wasteland }
+					set_country_flag = open_the_wasteland_state_list_gui
+					clr_country_flag = open_the_state_list_gui
+					wasteland_state_list_refresh = yes
+				}
+				else = {
+					set_country_flag = open_the_state_list_gui
+					clr_country_flag = open_the_wasteland_state_list_gui
+					state_list_refresh = yes
+				}
+			}
+			state_total_1_click = {
+				clr_country_flag = open_the_state_list_gui
+				clr_country_flag = open_the_wasteland_state_list_gui
+			}
+			settings_click = {
+				set_country_flag = open_the_wasteland_state_list_gui
+				clr_country_flag = open_the_state_list_gui
+				set_country_flag = last_opened_state_list_wasteland
+				clr_country_flag = last_opened_state_list_normal
+				wasteland_state_list_refresh = yes
+			}
+			settings_1_click = {
+				clr_country_flag = open_the_wasteland_state_list_gui
+				set_country_flag = open_the_state_list_gui
+				set_country_flag = last_opened_state_list_normal
+				clr_country_flag = last_opened_state_list_wasteland
+				state_list_refresh = yes
+			}
+			country_frame_click = {
+				save_global_event_target_as = selected_casualty_country
+				state_list_refresh = yes
+				if = {
+					limit = { has_country_flag = open_the_state_list_gui }
+					clr_country_flag = open_the_state_list_gui
+					set_country_flag = open_the_state_list_gui
+				}
+				sort_homeless_desc_refresh = yes
+			}
+			flag_click = {
+				save_global_event_target_as = selected_casualty_country
+				state_list_refresh = yes
+				if = {
+					limit = { has_country_flag = open_the_state_list_gui }
+					clr_country_flag = open_the_state_list_gui
+					set_country_flag = open_the_state_list_gui
+				}
+				sort_homeless_desc_refresh = yes
+			}
+			country_name_click = {
+				save_global_event_target_as = selected_casualty_country
+				state_list_refresh = yes
+				if = {
+					limit = { has_country_flag = open_the_state_list_gui }
+					clr_country_flag = open_the_state_list_gui
+					set_country_flag = open_the_state_list_gui
+				}
+				sort_homeless_desc_refresh = yes
+			}
+		}
+		triggers = { 
+			sort_total_visible = {
+				has_country_flag = open_the_country_list_gui
+			}
+			state_total_0_visible = {
+				NOT = {
+					OR = {
+						has_country_flag = open_the_state_list_gui
+						has_country_flag = open_the_wasteland_state_list_gui
+					}
+				}
+			}
+			state_total_1_visible = {
+				OR = {
+					has_country_flag = open_the_state_list_gui
+					has_country_flag = open_the_wasteland_state_list_gui
+				}
+			}
+			settings_visible = {
+				has_country_flag = open_the_state_list_gui
+				NOT = { has_country_flag = open_the_wasteland_state_list_gui }
+			}
+			settings_1_visible = {
+				has_country_flag = open_the_wasteland_state_list_gui
+				NOT = { has_country_flag = open_the_state_list_gui }
+			}
+		}
+	}
+	list_of_state_window_gui = { 
+		window_name = "list_of_state_window"
+		context_type = player_context
+		parent_window_name = list_of_countries_window
+		
+		visible = { has_country_flag = open_the_state_list_gui }
+
+		dynamic_lists = {
+			state_grid = {
+				array = global.state_statistical_data
+				change_scope = yes
+				entry_container = state_grid_entry
+				value = state_value
+			}
+		}
+
+		effects = {
+			sort_refresh_click = {
+				state_list_refresh = yes
+				sort_homeless_desc_refresh = yes
+			}
+		}
+
+		triggers = { 
+			list_of_state_window_visible = {
+				has_country_flag = open_the_state_list_gui
+			}
+		}
+	}
+	list_of_wasteland_state_window_gui = { 
+		window_name = "list_of_wasteland_state_window"
+		context_type = player_context
+		parent_window_name = list_of_countries_window
+		
+		visible = { has_country_flag = open_the_wasteland_state_list_gui }
+
+ 			dynamic_lists = {
+ 				wasteland_state_grid = {
+ 					array = global.wasteland_state_list
+ 					change_scope = yes
+ 					entry_container = wasteland_state_grid_entry
+ 					value = wasteland_state_value
+ 				}
+ 			}
+
+			effects = {
+				progress_Fini_on_click = {
+					if = {
+						limit = {
+							check_variable = { wasteland_rebuild_ready > 0 }
+							is_owned_by = ROOT
+						}
+						complete_wasteland_restore_with_reward = yes
+						wasteland_state_list_refresh = yes
+					}
+				}
+
+				sort_refresh_click = { 
+					wasteland_state_list_refresh = yes
+				}
+			}
+
+
+		triggers = { 
+			list_of_wasteland_state_window_visible = {
+				has_country_flag = open_the_wasteland_state_list_gui
+					}
+				warning_status_down_visible = {
+					check_variable = { wasteland_rebuild_stop_days > 0 }
+				}
+				warning_status_0_visible = {
+					OR = {
+						check_variable = { wasteland_rebuild_ready > 0 }
+						NOT = { check_variable = { wasteland_rebuild_stage > 0 } }
+						is_demilitarized_zone = yes
+					}
+				}
+				warning_status_up_visible = {
+					check_variable = { wasteland_rebuild_stage > 0 }
+					check_variable = { wasteland_rebuild_stop_days = 0 }
+					check_variable = { wasteland_rebuild_ready = 0 }
+					is_demilitarized_zone = no
+				}
+				progress_Fini_on_visible = {
+					check_variable = { wasteland_rebuild_ready > 0 }
+					is_owned_by = ROOT
+				}
+				progress_Fini_off_visible = {
+					OR = {
+						NOT = { check_variable = { wasteland_rebuild_ready > 0 } }
+						NOT = { is_owned_by = ROOT }
+					}
+				}
+				progress_1_on_visible = {
+					OR = {
+						check_variable = { wasteland_rebuild_stage > 1 }
+						check_variable = { wasteland_rebuild_ready > 0 }
+					}
+				}
+				progress_1_off_visible = {
+					NOT = {
+						OR = {
+							check_variable = { wasteland_rebuild_stage > 1 }
+							check_variable = { wasteland_rebuild_ready > 0 }
+						}
+					}
+				}
+				progress_2_on_visible = {
+					OR = {
+						check_variable = { wasteland_rebuild_stage > 2 }
+						check_variable = { wasteland_rebuild_ready > 0 }
+					}
+				}
+				progress_2_off_visible = {
+					NOT = {
+						OR = {
+							check_variable = { wasteland_rebuild_stage > 2 }
+							check_variable = { wasteland_rebuild_ready > 0 }
+						}
+					}
+				}
+				progress_3_on_visible = {
+					OR = {
+						check_variable = { wasteland_rebuild_stage > 3 }
+						check_variable = { wasteland_rebuild_ready > 0 }
+					}
+				}
+				progress_3_off_visible = {
+					NOT = {
+						OR = {
+							check_variable = { wasteland_rebuild_stage > 3 }
+							check_variable = { wasteland_rebuild_ready > 0 }
+						}
+					}
+				}
+				progress_4_on_visible = {
+					OR = {
+						check_variable = { wasteland_rebuild_stage > 4 }
+						check_variable = { wasteland_rebuild_ready > 0 }
+					}
+				}
+				progress_4_off_visible = {
+					NOT = {
+						OR = {
+							check_variable = { wasteland_rebuild_stage > 4 }
+							check_variable = { wasteland_rebuild_ready > 0 }
+						}
+					}
+				}
+				progress_5_on_visible = {
+					OR = {
+						check_variable = { wasteland_rebuild_stage > 5 }
+						check_variable = { wasteland_rebuild_ready > 0 }
+					}
+				}
+				progress_5_off_visible = {
+					NOT = {
+						OR = {
+							check_variable = { wasteland_rebuild_stage > 5 }
+							check_variable = { wasteland_rebuild_ready > 0 }
+						}
+					}
+				}
+				progress_6_on_visible = {
+					OR = {
+						check_variable = { wasteland_rebuild_stage > 6 }
+						check_variable = { wasteland_rebuild_ready > 0 }
+					}
+				}
+				progress_6_off_visible = {
+					NOT = {
+						OR = {
+							check_variable = { wasteland_rebuild_stage > 6 }
+							check_variable = { wasteland_rebuild_ready > 0 }
+						}
+					}
+				}
+				progress_7_on_visible = {
+					check_variable = { wasteland_rebuild_ready > 0 }
+				}
+				progress_7_off_visible = {
+					NOT = { check_variable = { wasteland_rebuild_ready > 0 } }
+				}
+		}
+	}
+}
+

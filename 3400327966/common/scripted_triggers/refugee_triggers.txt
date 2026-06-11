@@ -1,0 +1,31 @@
+# 难民/人口迁移 - Scripted Triggers
+
+# 交战前线/争夺州：州并非完全由拥有者控制（通常为前线、口袋、战斗泡）
+# - 仅对“正在争夺（双方都未完全控制）”的州返回 yes
+# - 完全被占的州单独在迁移 effect 里处理（避免叠加重复）
+is_border_war_state = {
+	owner = { has_war = yes }
+	NOT = { is_fully_controlled_by = owner }
+	NOT = { is_fully_controlled_by = controller }
+}
+
+# 同国内迁移目的地：尽量选择“相对安全”的州
+is_valid_internal_refugee_destination = {
+	# 不迁入非军事区/辐射/废土
+	is_demilitarized_zone = no
+	# 目的地必须由当前控制者完全控制（避免迁入争夺/口袋州）
+	is_fully_controlled_by = controller
+	NOT = { has_state_flag = has_radiation }
+	NOT = { has_state_flag = nuke_repair_wasteland_state }
+	# 不迁入交战边境州（内联判定，避免嵌套 scripted_trigger 兼容性问题）
+	NOT = {
+		AND = {
+			controller = { has_war = yes }
+			any_neighbor_state = {
+				controller = { has_war_with = PREV.controller }
+			}
+		}
+	}
+	# 不迁入正在被战略轰炸的州
+	days_since_last_strategic_bombing > 2
+}

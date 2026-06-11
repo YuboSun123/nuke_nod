@@ -1,0 +1,46 @@
+# --------------- 辐射州修正驱动值 ---------------#
+update_radiation_effects = {
+	set_temp_variable = {
+		var = population_grown_radiation_effect_temp
+		value = radiation_var
+	}
+	multiply_temp_variable = {
+		var = population_grown_radiation_effect_temp
+		value = -0.049
+	}
+	set_variable = {
+		var = population_grown_radiation_effect
+		value = population_grown_radiation_effect_temp
+	}
+}
+
+# --------------- 难民州修正驱动值 ---------------#
+update_homeless_work_disruption_drive_values_for_state = {
+	set_variable = { var = homeless_local_supply_impact_factor value = 0 }
+
+	set_variable = { var = homeless_supply_impact_factor value = 0 }
+	if = {
+		limit = { check_variable = { state_refugee_pool_k > 0 } }
+		set_temp_variable = { var = refugee_supply_penalty_temp value = state_refugee_pool_k }
+		multiply_temp_variable = { var = refugee_supply_penalty_temp value = -0.047 }
+		if = {
+			limit = { check_variable = { var = refugee_supply_penalty_temp value = -1.0 compare = less_than } }
+			set_temp_variable = { var = refugee_supply_penalty_temp value = -1.0 }
+		}
+		set_variable = { var = homeless_supply_impact_factor value = refugee_supply_penalty_temp }
+
+		set_temp_variable = { var = refugee_supply_impact_temp value = state_refugee_pool_k }
+		multiply_temp_variable = { var = refugee_supply_impact_temp value = 0.015 }
+		if = {
+			limit = { check_variable = { var = refugee_supply_impact_temp value = 1.0 compare = greater_than } }
+			set_temp_variable = { var = refugee_supply_impact_temp value = 1.0 }
+		}
+		set_variable = { var = homeless_local_supply_impact_factor value = refugee_supply_impact_temp }
+	}
+}
+
+update_homeless_work_disruption_drive_values = {
+	every_state = {
+		update_homeless_work_disruption_drive_values_for_state = yes
+	}
+}

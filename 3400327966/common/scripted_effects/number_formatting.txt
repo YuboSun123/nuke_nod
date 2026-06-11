@@ -1,0 +1,470 @@
+#--------------- 全局伤亡数字单位换算（K/M/KM） ---------------#
+update_casualty_display_variables = {
+
+	# --- 平民：先把全局变量从“千人(K)”还原成“真实人数” ---
+
+	# 核打击造成的平民死亡
+	format_global_people_death_by_nukes_display = yes
+
+	# 核辐射造成的平民死亡
+	format_global_people_death_by_nukes_radiation_display = yes
+
+	# 战争造成的平民死亡
+	format_global_people_death_by_war_display = yes
+
+	# 反叛者被清剿伤亡
+	format_global_died_in_mil_crackdowns_display = yes
+
+	# 核打击造成的单位损失
+	format_global_units_killed_by_nukes_display = yes
+
+	# 核辐射造成的单位损失
+	format_global_units_killed_by_radiation_display = yes
+
+	# 常规战争造成的单位损失
+	format_global_units_killed_by_war_display = yes
+
+	every_country = {
+		# 总伤亡人数（原始人数 total_casualties）
+		format_country_total_casualties_display = yes
+
+		# 军事伤亡人数
+		format_country_mil_casualties_display = yes
+
+		# 轰炸平民死亡人数
+		format_country_civ_casualties_display = yes
+
+		# 战争造成的平民死亡
+		format_country_civ_deaths_by_war_display = yes
+
+		# 州清剿/压制反叛者
+		format_country_suppress_the_rebels_display = yes
+	}
+}
+
+#--------------- 全局难民数字单位换算（K/M/KM） ---------------#
+refresh_refugee_state_display_variables = {
+	# 州级派生变量只依赖本州数据，可在州作用域下单独刷新，避免日频全图重算。
+	format_state_refugee_pool_display = yes
+
+	set_variable = { var = state_refugee_ratio_pct value = 0 }
+	if = {
+		limit = { state_population_k > 0 }
+		set_temp_variable = { var = refugee_ratio_temp value = state_refugee_pool_k }
+		divide_temp_variable = { var = refugee_ratio_temp value = state_population_k }
+		multiply_temp_variable = { var = refugee_ratio_temp value = 100 }
+		set_variable = { var = state_refugee_ratio_pct value = refugee_ratio_temp }
+	}
+
+	set_variable = { var = state_refugee_resettled_ratio_pct value = 0 }
+	if = {
+		limit = {
+			OR = {
+				check_variable = { state_refugee_resettled_total_people > 0 }
+				check_variable = { state_refugee_pool_k > 0.001 }
+			}
+		}
+		set_temp_variable = { var = refugee_resettled_total_flow_people value = state_refugee_pool_k }
+		multiply_temp_variable = { var = refugee_resettled_total_flow_people value = 1000 }
+		add_to_temp_variable = { var = refugee_resettled_total_flow_people value = state_refugee_resettled_total_people }
+		if = {
+			limit = { check_variable = { var = refugee_resettled_total_flow_people value = 0 compare = greater_than } }
+			set_temp_variable = { var = refugee_resettled_ratio_temp value = state_refugee_resettled_total_people }
+			divide_temp_variable = { var = refugee_resettled_ratio_temp value = refugee_resettled_total_flow_people }
+			multiply_temp_variable = { var = refugee_resettled_ratio_temp value = 100 }
+			set_variable = { var = state_refugee_resettled_ratio_pct value = refugee_resettled_ratio_temp }
+		}
+	}
+
+	format_state_refugee_weekly_pop_delta_display = yes
+	update_homeless_work_disruption_drive_values_for_state = yes
+}
+
+update_refugee_display_variables = { 
+	# 国家/全局难民池按州难民池重算，避免控制权变化和长期增量更新带来的统计漂移。
+	
+	set_variable = { var = global.refugee_pool_k value = 0.0 }
+	every_country = {
+		set_variable = { var = country_refugee_pool_k value = 0.0 }
+	}
+	every_state = {
+		if = {
+			limit = { check_variable = { state_refugee_pool_k > 0 } }
+			controller = {
+				add_to_variable = { var = country_refugee_pool_k value = PREV.state_refugee_pool_k }
+			}
+			add_to_variable = { var = global.refugee_pool_k value = state_refugee_pool_k }
+		}
+	}
+	
+	every_state = {
+		refresh_refugee_state_display_variables = yes
+	}
+
+	every_country = { 
+		# 州难民占国家难民人口比（%）：州难民池 / 当前控制国难民池 * 100
+		every_controlled_state = {
+			set_variable = { var = state_refugee_country_ratio_pct value = 0 }
+			if = {
+				limit = {
+					check_variable = { state_refugee_pool_k > 0 }
+					check_variable = { PREV.country_refugee_pool_k > 0 }
+				}
+				set_temp_variable = { var = refugee_country_ratio_temp value = state_refugee_pool_k }
+				divide_temp_variable = { var = refugee_country_ratio_temp value = PREV.country_refugee_pool_k }
+				multiply_temp_variable = { var = refugee_country_ratio_temp value = 100 }
+				set_variable = { var = state_refugee_country_ratio_pct value = refugee_country_ratio_temp }
+			}
+		}
+
+		# 国家难民池人数（功能变量）：country_refugee_pool_k（单位：K，千人）
+		# 这里仅生成显示用变量，不要改写 country_refugee_pool_k 本身。
+		# 真实人数（人）：用于 <1K 时显示
+		format_country_refugee_pool_display = yes
+
+		# 国家难民出入境人口差（功能变量）：country_refugee_border_net_weekly_k（单位：K，千人）
+		# 仅生成显示用变量：
+		# - country_refugee_border_net_weekly_people：<1K 时显示真实人数
+		# - country_refugee_border_net_weekly_m / _km：大数单位
+		format_country_refugee_border_net_weekly_display = yes
+	}
+
+	# 全局难民池人数（功能变量）：global.refugee_pool_k（单位：K，千人）
+	# 这里仅生成显示用变量，不要改写 global.refugee_pool_k 本身。
+	# 真实人数（人）：用于 <1K 时显示
+	format_global_refugee_pool_display = yes
+}
+
+
+#--------------- 全局伤亡数字单位换算：核打击平民死亡 ---------------#
+format_global_people_death_by_nukes_display = {
+	set_temp_variable = { var = casualty_temp value = global.people_death_by_nukes }
+	set_variable      = { var = global.people_death_by_nukes_display value = casualty_temp }
+	multiply_temp_variable = { var = casualty_temp value = 1000 }
+	set_variable      = { var = global.people_death_by_nukes_display value = casualty_temp }
+
+	set_temp_variable = { var = casualty_temp value = global.people_death_by_nukes_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.people_death_by_nukes_k value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.people_death_by_nukes_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.people_death_by_nukes_m value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.people_death_by_nukes_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.people_death_by_nukes_km value = casualty_temp }
+}
+
+#--------------- 全局伤亡数字单位换算：核辐射平民死亡 ---------------#
+format_global_people_death_by_nukes_radiation_display = {
+	set_temp_variable = { var = casualty_temp value = global.people_death_by_nukes_radiation }
+	set_variable      = { var = global.people_death_by_nukes_radiation_display value = casualty_temp }
+	multiply_temp_variable = { var = casualty_temp value = 1000 }
+	set_variable      = { var = global.people_death_by_nukes_radiation_display value = casualty_temp }
+
+	set_temp_variable = { var = casualty_temp value = global.people_death_by_nukes_radiation_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.people_death_by_nukes_radiation_k value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.people_death_by_nukes_radiation_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.people_death_by_nukes_radiation_m value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.people_death_by_nukes_radiation_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.people_death_by_nukes_radiation_km value = casualty_temp }
+}
+
+#--------------- 全局伤亡数字单位换算：战争平民死亡 ---------------#
+format_global_people_death_by_war_display = {
+	set_temp_variable = { var = casualty_temp value = global.people_death_by_war }
+	set_variable      = { var = global.people_death_by_war_display value = casualty_temp }
+	multiply_temp_variable = { var = casualty_temp value = 1000 }
+	set_variable      = { var = global.people_death_by_war_display value = casualty_temp }
+
+	set_temp_variable = { var = casualty_temp value = global.people_death_by_war_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.people_death_by_war_k value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.people_death_by_war_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.people_death_by_war_m value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.people_death_by_war_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.people_death_by_war_km value = casualty_temp }
+}
+
+#--------------- 全局伤亡数字单位换算：清剿伤亡 ---------------#
+format_global_died_in_mil_crackdowns_display = {
+	set_temp_variable = { var = casualty_temp value = global.died_in_mil_crackdowns }
+	set_variable      = { var = global.died_in_mil_crackdowns_display value = casualty_temp }
+	multiply_temp_variable = { var = casualty_temp value = 1000 }
+	set_variable      = { var = global.died_in_mil_crackdowns_display value = casualty_temp }
+
+	set_temp_variable = { var = casualty_temp value = global.died_in_mil_crackdowns_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.died_in_mil_crackdowns_k value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.died_in_mil_crackdowns_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.died_in_mil_crackdowns_m value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.died_in_mil_crackdowns_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.died_in_mil_crackdowns_km value = casualty_temp }
+}
+
+#--------------- 全局伤亡数字单位换算：核打击单位损失 ---------------#
+format_global_units_killed_by_nukes_display = {
+	set_temp_variable = { var = casualty_temp value = global.units_killed_by_nukes }
+	set_variable      = { var = global.units_killed_by_nukes_display value = casualty_temp }
+	multiply_temp_variable = { var = casualty_temp value = 1000 }
+	set_variable      = { var = global.units_killed_by_nukes_display value = casualty_temp }
+
+	set_temp_variable = { var = casualty_temp value = global.units_killed_by_nukes_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.units_killed_by_nukes_k value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.units_killed_by_nukes_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.units_killed_by_nukes_m value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.units_killed_by_nukes_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.units_killed_by_nukes_km value = casualty_temp }
+}
+
+#--------------- 全局伤亡数字单位换算：核辐射单位损失 ---------------#
+format_global_units_killed_by_radiation_display = {
+	set_temp_variable = { var = casualty_temp value = global.units_killed_by_radiation }
+	set_variable      = { var = global.units_killed_by_radiation_display value = casualty_temp }
+	multiply_temp_variable = { var = casualty_temp value = 1000 }
+	set_variable      = { var = global.units_killed_by_radiation_display value = casualty_temp }
+
+	set_temp_variable = { var = casualty_temp value = global.units_killed_by_radiation_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.units_killed_by_radiation_k value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.units_killed_by_radiation_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.units_killed_by_radiation_m value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.units_killed_by_radiation_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.units_killed_by_radiation_km value = casualty_temp }
+}
+
+#--------------- 全局伤亡数字单位换算：常规战争单位损失 ---------------#
+format_global_units_killed_by_war_display = {
+	set_temp_variable = { var = casualty_temp value = global.units_killed_by_war }
+	set_variable      = { var = global.units_killed_by_war_display value = casualty_temp }
+	multiply_temp_variable = { var = casualty_temp value = 1000 }
+	set_variable      = { var = global.units_killed_by_war_display value = casualty_temp }
+
+	set_temp_variable = { var = casualty_temp value = global.units_killed_by_war_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.units_killed_by_war_k value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.units_killed_by_war_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.units_killed_by_war_m value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = global.units_killed_by_war_display }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable      = { var = global.units_killed_by_war_km value = casualty_temp }
+}
+
+#--------------- 国家伤亡数字单位换算：总伤亡人数 ---------------#
+format_country_total_casualties_display = {
+	set_temp_variable = { var = casualty_temp value = total_casualties_k }
+	set_variable = { var = total_casualties value = casualty_temp }
+	multiply_temp_variable = { var = casualty_temp value = 1000 }
+	set_variable = { var = total_casualties value = casualty_temp }
+
+	set_temp_variable = { var = casualty_temp value = total_casualties }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = total_casualties_k value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = total_casualties }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = total_casualties_m value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = total_casualties }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = total_casualties_km value = casualty_temp }
+}
+
+#--------------- 国家伤亡数字单位换算：军事伤亡人数 ---------------#
+format_country_mil_casualties_display = {
+	set_temp_variable = { var = casualty_temp value = mil_casualties_k }
+	set_variable = { var = mil_casualties value = casualty_temp }
+	multiply_temp_variable = { var = casualty_temp value = 1000 }
+	set_variable = { var = mil_casualties value = casualty_temp }
+
+	set_temp_variable = { var = casualty_temp value = mil_casualties }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = mil_casualties_k value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = mil_casualties }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = mil_casualties_m value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = mil_casualties }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = mil_casualties_km value = casualty_temp }
+}
+
+#--------------- 国家伤亡数字单位换算：轰炸平民死亡 ---------------#
+format_country_civ_casualties_display = {
+	set_temp_variable = { var = casualty_temp value = civ_casualties_k }
+	set_variable = { var = civ_casualties value = casualty_temp }
+	multiply_temp_variable = { var = casualty_temp value = 1000 }
+	set_variable = { var = civ_casualties value = casualty_temp }
+
+	set_temp_variable = { var = casualty_temp value = civ_casualties }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = civ_casualties_k value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = civ_casualties }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = civ_casualties_m value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = civ_casualties }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = civ_casualties_km value = casualty_temp }
+}
+
+#--------------- 国家伤亡数字单位换算：战争平民死亡 ---------------#
+format_country_civ_deaths_by_war_display = {
+	set_temp_variable = { var = casualty_temp value = civ_deaths_by_war_k }
+	set_variable = { var = civ_deaths_by_war value = casualty_temp }
+	multiply_temp_variable = { var = casualty_temp value = 1000 }
+	set_variable = { var = civ_deaths_by_war value = casualty_temp }
+
+	set_temp_variable = { var = casualty_temp value = civ_deaths_by_war }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = civ_deaths_by_war_k value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = civ_deaths_by_war }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = civ_deaths_by_war_m value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = civ_deaths_by_war }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = civ_deaths_by_war_km value = casualty_temp }
+}
+
+#--------------- 国家伤亡数字单位换算：清剿伤亡 ---------------#
+format_country_suppress_the_rebels_display = {
+	set_temp_variable = { var = casualty_temp value = suppress_the_rebels_k }
+	set_variable = { var = suppress_the_rebels value = casualty_temp }
+	multiply_temp_variable = { var = casualty_temp value = 1000 }
+	set_variable = { var = suppress_the_rebels value = casualty_temp }
+
+	set_temp_variable = { var = casualty_temp value = suppress_the_rebels }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = suppress_the_rebels_k value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = suppress_the_rebels }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = suppress_the_rebels_m value = casualty_temp }
+	set_temp_variable = { var = casualty_temp value = suppress_the_rebels }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	multiply_temp_variable = { var = casualty_temp value = 0.001 }
+	set_variable = { var = suppress_the_rebels_km value = casualty_temp }
+}
+
+#--------------- 州难民数字单位换算：难民池人数 ---------------#
+format_state_refugee_pool_display = {
+	set_temp_variable = { var = refugee_temp value = state_refugee_pool_k }
+	set_variable      = { var = state_refugee_pool_m value = refugee_temp }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	set_variable      = { var = state_refugee_pool_m value = refugee_temp }
+	set_temp_variable = { var = refugee_temp value = state_refugee_pool_k }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	set_variable      = { var = state_refugee_pool_km value = refugee_temp }
+}
+
+#--------------- 州难民数字单位换算：每周净迁移 ---------------#
+format_state_refugee_weekly_pop_delta_display = {
+	set_temp_variable = { var = refugee_temp value = state_refugee_weekly_pop_delta }
+	set_variable      = { var = state_refugee_weekly_pop_delta_display value = refugee_temp }
+
+	set_temp_variable = { var = refugee_temp value = state_refugee_weekly_pop_delta_display }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	set_variable      = { var = state_refugee_weekly_pop_delta_k value = refugee_temp }
+	set_temp_variable = { var = refugee_temp value = state_refugee_weekly_pop_delta_display }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	set_variable      = { var = state_refugee_weekly_pop_delta_m value = refugee_temp }
+	set_temp_variable = { var = refugee_temp value = state_refugee_weekly_pop_delta_display }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	set_variable      = { var = state_refugee_weekly_pop_delta_km value = refugee_temp }
+}
+
+#--------------- 国家难民数字单位换算：难民池人数 ---------------#
+format_country_refugee_pool_display = {
+	set_temp_variable = { var = refugee_temp value = country_refugee_pool_k }
+	multiply_temp_variable = { var = refugee_temp value = 1000 }
+	round_temp_variable = refugee_temp
+	set_variable      = { var = country_refugee_pool_people value = refugee_temp }
+
+	set_temp_variable = { var = refugee_temp value = country_refugee_pool_k }
+	set_variable      = { var = country_refugee_pool_m value = refugee_temp }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	set_variable      = { var = country_refugee_pool_m value = refugee_temp }
+	set_temp_variable = { var = refugee_temp value = country_refugee_pool_k }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	set_variable      = { var = country_refugee_pool_km value = refugee_temp }
+}
+
+#--------------- 国家难民数字单位换算：出入境人口差 ---------------#
+format_country_refugee_border_net_weekly_display = {
+	set_temp_variable = { var = refugee_temp value = country_refugee_border_net_weekly_k }
+	multiply_temp_variable = { var = refugee_temp value = 1000 }
+	round_temp_variable = refugee_temp
+	set_variable      = { var = country_refugee_border_net_weekly_people value = refugee_temp }
+
+	set_temp_variable = { var = refugee_temp value = country_refugee_border_net_weekly_k }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	set_variable      = { var = country_refugee_border_net_weekly_m value = refugee_temp }
+	set_temp_variable = { var = refugee_temp value = country_refugee_border_net_weekly_k }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	set_variable      = { var = country_refugee_border_net_weekly_km value = refugee_temp }
+}
+
+#--------------- 全局难民数字单位换算：难民池人数 ---------------#
+format_global_refugee_pool_display = {
+	set_temp_variable = { var = refugee_temp value = global.refugee_pool_k }
+	multiply_temp_variable = { var = refugee_temp value = 1000 }
+	round_temp_variable = refugee_temp
+	set_variable      = { var = global.refugee_pool_people value = refugee_temp }
+
+	set_temp_variable = { var = refugee_temp value = global.refugee_pool_k }
+	set_variable      = { var = global.refugee_pool_m value = refugee_temp }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	set_variable      = { var = global.refugee_pool_m value = refugee_temp }
+	set_temp_variable = { var = refugee_temp value = global.refugee_pool_k }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	multiply_temp_variable = { var = refugee_temp value = 0.001 }
+	set_variable      = { var = global.refugee_pool_km value = refugee_temp }
+}

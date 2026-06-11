@@ -1,0 +1,30 @@
+add_namespace = publication_nuclear
+
+news_event = {
+	id = publication_nuclear.1
+	title = publication_nuclear.1.t
+	desc = publication_nuclear.1.d
+	picture = GFX_news_event_nuke
+
+	major = yes
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = publication_nuclear.1.a
+	}
+}
+news_event = {
+	id = publication_nuclear.2
+	title = publication_nuclear.2.t
+	desc = publication_nuclear.2.d
+	picture = GFX_news_event_nuke
+
+	major = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = publication_nuclear.2.a
+	}
+}

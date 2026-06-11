@@ -1,0 +1,554 @@
+# ---------------计算邻近辐射效果 ---------------#
+handle_neighbor_radiation_effects = {
+    if = { 
+        limit = { 
+			NOT = { 
+                has_state_flag = has_radiation
+            }
+        }
+        add_dynamic_modifier = { modifier = neighbor_radiation_state_modifier }
+        set_state_flag = has_radiation
+        set_variable_to_random = {
+            var = radiation_var
+            min = 4
+            max = 6
+            integer = no
+        }
+    }
+    else_if = { 
+        limit = { 
+            has_state_flag = has_radiation
+            has_dynamic_modifier = { modifier = neighbor_radiation_state_modifier }
+        }
+        if = { 
+            limit = { check_variable = { radiation_var > 3.00 } }
+            set_variable = { 
+                var = radiation_var
+                value = 6
+            }
+        }
+        else_if = { 
+            limit = { check_variable = { radiation_var < 3.00 } }
+            set_variable = { 
+                var = radiation_var
+                value = 4
+            }
+        }
+    }
+    else_if = { 
+        limit = { 
+            has_state_flag = has_radiation
+            has_dynamic_modifier = { modifier = radiation_state_modifier }
+        }
+        remove_dynamic_modifier = { modifier = neighbor_radiation_state_modifier }
+        if = { 
+            limit = { check_variable = { radiation_var > 5.00 } }
+            set_variable = { 
+                var = radiation_var
+                value = 8
+            }
+        }
+        else_if = { 
+            limit = { check_variable = { radiation_var < 5.00 } }
+            set_variable = { 
+                var = radiation_var
+                value = 5
+            }
+        }
+    }
+    else_if = { 
+        limit = { 
+            has_state_flag = has_radiation
+            has_dynamic_modifier = { modifier = thermo_radiation_state_modifier }
+        }
+        remove_dynamic_modifier = { modifier = neighbor_radiation_state_modifier }
+        if = { 
+            limit = { check_variable = { radiation_var > 7.00 } }
+            set_variable = { 
+                var = radiation_var
+                value = 10
+            }
+        }
+        else_if = { 
+            limit = { check_variable = { radiation_var < 7.00 } }
+            set_variable = { 
+                var = radiation_var
+                value = 8
+            }
+        }
+    }
+}
+# --------------- 计算建筑损毁 ---------------#
+damage_buildings_common = {
+	damage_building = {
+		type = infrastructure
+		damage = 5.0
+	}
+	damage_building = {
+		type = arms_factory
+		damage = 20.0
+	}
+	damage_building = {
+		type = industrial_complex
+		damage = 20.0
+	}
+	damage_building = {
+		type = air_base
+		damage = 10.0
+	}
+	damage_building = {
+		type = supply_node
+		damage = 1.0
+	}
+	damage_building = {
+		type = rail_way
+		damage = 1.0
+	}
+	damage_building = {
+		type = naval_base
+		damage = 10.0
+	}
+	damage_building = {
+		type = bunker
+		damage = 10.0
+	}
+	damage_building = {
+		type = coastal_bunker
+		damage = 10.0
+	}
+	damage_building = {
+		type = stronghold_network
+		damage = 1
+	}
+	damage_building = {
+		type = dockyard
+		damage = 20.0
+	}
+	damage_building = {
+		type = anti_air_building
+		damage = 5.0
+	}
+	damage_building = {
+		type = synthetic_refinery
+		damage = 3.0
+	}
+	damage_building = {
+		type = fuel_silo
+		damage = 10.0
+	}
+	damage_building = {
+		type = radar_station
+		damage = 6.0
+	}
+	damage_building = {
+		type = mega_gun_emplacement
+		damage = 1.0
+	}
+	damage_building = {
+		type = rocket_site
+		damage = 3.0
+	}
+	damage_building = {
+		type = nuclear_reactor_heavy_water
+		damage = 1.0
+	}
+	damage_building = {
+		type = commercial_nuclear_reactor
+		damage = 1
+	}
+	damage_building = {
+		tags = specialization_nuclear
+		damage = 1
+	}
+	damage_building = {
+		tags = facility
+		damage = 1
+	}
+	damage_building = {
+		tags = dam_building
+		damage = 1
+	}
+	damage_building = {
+		tags = locks_building
+		damage = 1
+	}
+}
+update_of_building_damage = {
+	damage_buildings_common = yes
+	if = { 
+		limit = { 
+			FROM = { has_dynamic_modifier = { modifier = fallout_thermonuclear } } 
+		}
+		every_neighbor_state = { 
+			damage_buildings_common = yes
+		}
+	}
+}
+#--------------- 轰炸相关 ---------------#
+update_bombing_deaths = {
+    set_temp_variable = { bombing_death_multiplier = 0.0 }
+    # 根据STATE CATEGORY设置伤亡比例   这部分代表人口密度、建筑密度、目标聚集度等因素
+    if = { limit = { has_state_category = megalopolis } set_temp_variable = { bombing_death_multiplier = -0.15 } }
+    else_if = { limit = { has_state_category = metropolis } set_temp_variable = { bombing_death_multiplier = -0.12 } }
+    else_if = { limit = { has_state_category = large_city } set_temp_variable = { bombing_death_multiplier = -0.1 } }
+    else_if = { limit = { has_state_category = city } set_temp_variable = { bombing_death_multiplier = -0.08 } }
+    else_if = { limit = { has_state_category = large_town } set_temp_variable = { bombing_death_multiplier = -0.06 } }
+    else_if = { limit = { has_state_category = town } set_temp_variable = { bombing_death_multiplier = -0.04 } }
+    else_if = { limit = { has_state_category = rural } set_temp_variable = { bombing_death_multiplier = -0.02 } }
+    else_if = { limit = { has_state_category = pastoral } set_temp_variable = { bombing_death_multiplier = -0.015 } }
+    else_if = { limit = { has_state_category = small_island } set_temp_variable = { bombing_death_multiplier = -0.01 } }
+    else_if = { limit = { has_state_category = enclave } set_temp_variable = { bombing_death_multiplier = -0.008 } }
+    else_if = { limit = { has_state_category = tiny_island } set_temp_variable = { bombing_death_multiplier = -0.005 } }
+	else_if = { limit = { has_state_category = nuke_repair_wasteland } set_temp_variable = { bombing_death_multiplier = -0.002 } }
+    else_if = { limit = { has_state_category = wasteland } set_temp_variable = { bombing_death_multiplier = -0.0 } }
+
+	# 仅使用州作用域可稳定读取的代理量来修正轰炸伤亡。
+	set_temp_variable = { bombing_death_scale = 1.0 }
+
+	# 连续轰炸：越接近最近一次战略轰炸，说明本轮空袭密度越高。
+	if = { limit = { days_since_last_strategic_bombing < 1 } multiply_temp_variable = { bombing_death_scale = 1.28 } }
+	else_if = { limit = { days_since_last_strategic_bombing < 2 } multiply_temp_variable = { bombing_death_scale = 1.18 } }
+	else_if = { limit = { days_since_last_strategic_bombing < 3 } multiply_temp_variable = { bombing_death_scale = 1.10 } }
+
+	# 防空/预警：防空火力和雷达预警会降低居民暴露与直接致死率。
+	if = { limit = { anti_air_building > 0 } multiply_temp_variable = { bombing_death_scale = 0.96 } }
+	if = { limit = { anti_air_building > 2 } multiply_temp_variable = { bombing_death_scale = 0.94 } }
+	if = { limit = { radar_station > 0 } multiply_temp_variable = { bombing_death_scale = 0.97 } }
+	if = { limit = { radar_station > 2 } multiply_temp_variable = { bombing_death_scale = 0.95 } }
+
+	# 基建/补给：道路、通信、消防和医疗转运越好，二次死亡越低。
+	if = { limit = { infrastructure > 2 } multiply_temp_variable = { bombing_death_scale = 0.98 } }
+	if = { limit = { infrastructure > 5 } multiply_temp_variable = { bombing_death_scale = 0.95 } }
+	if = { limit = { infrastructure > 8 } multiply_temp_variable = { bombing_death_scale = 0.96 } }
+	if = { limit = { supply_node > 0 } multiply_temp_variable = { bombing_death_scale = 0.95 } }
+
+	# 难民/前线：拥挤、疏散失序与持续战斗会抬高平民伤亡。
+	if = { limit = { check_variable = { state_refugee_pool_k > 1 } } multiply_temp_variable = { bombing_death_scale = 1.05 } }
+	if = { limit = { check_variable = { state_refugee_pool_k > 10 } } multiply_temp_variable = { bombing_death_scale = 1.06 } }
+	if = { limit = { check_variable = { state_refugee_pool_k > 50 } } multiply_temp_variable = { bombing_death_scale = 1.08 } }
+	if = { limit = { has_dynamic_modifier = { modifier = homeless_work_disruption_state_modifier } } multiply_temp_variable = { bombing_death_scale = 1.08 } }
+	if = { limit = { is_border_war_state = yes } multiply_temp_variable = { bombing_death_scale = 1.12 } }
+	if = {
+		limit = {
+			is_fully_controlled_by = controller
+			NOT = { is_fully_controlled_by = owner }
+		}
+		multiply_temp_variable = { bombing_death_scale = 1.06 }
+	}
+
+	multiply_temp_variable = { bombing_death_multiplier = bombing_death_scale }
+    
+	set_temp_variable = { killed_pop_in_bombing = state_population_k }
+	multiply_temp_variable = { killed_pop_in_bombing = bombing_death_multiplier }
+	multiply_temp_variable = { killed_pop_in_bombing = 0.001 } # 缩放系数，可按需调整
+
+	if = { limit = { check_variable = { var = killed_pop_in_bombing value = 0 compare = greater_than } } set_temp_variable = { var = killed_pop_in_bombing value = 0 } }
+	set_temp_variable = { var = state_population_floor_people value = state_population_k }
+	multiply_temp_variable = { var = state_population_floor_people value = -1000 }
+	if = {
+		limit = { check_variable = { var = killed_pop_in_bombing value = state_population_floor_people compare = less_than } }
+		set_temp_variable = { var = killed_pop_in_bombing value = state_population_floor_people }
+	}
+	add_manpower = killed_pop_in_bombing
+	add_to_variable = { state_number_of_people_killed = killed_pop_in_bombing }
+	
+	multiply_temp_variable = { killed_pop_in_bombing = -1 } # 转为整数
+	multiply_temp_variable = { killed_pop_in_bombing = 0.001 } 
+
+	add_to_variable = { global.people_death_by_war = killed_pop_in_bombing }
+
+	# 将平民伤亡与总伤亡累计到州控制者（单位：K）
+	controller = {
+		add_to_variable = { civ_casualties_k = killed_pop_in_bombing }
+		add_to_variable = { total_casualties_k = killed_pop_in_bombing }
+	}
+}
+#--------------- 清剿反动派 ---------------#
+update_Kill_to_establish_authority = {
+	if = {
+		limit = {
+			# 只有在“最近发生过抵抗活动/破坏”的时间窗内才进行清剿
+			check_variable = { var = recent_resistance_activity_timer value = 0 compare = greater_than }
+		}
+
+		# 基础参数（可按需调整）
+		set_temp_variable = { var = killed_multiplier value = -0.001 } # 基础人员杀伤系数
+		set_temp_variable = { var = resistance_change value = -0.14 }     # 基础抵抗下降
+
+			# 根据 occupation law 调整系数
+			if = {  
+				limit = { occupation_law = forced_labor_occupation } 
+				multiply_temp_variable = { var = killed_multiplier value = 1.50 } 
+				add_to_temp_variable = { var = resistance_change value = -1.5 } 
+			}
+			if = { 
+				limit = { occupation_law = brutally_oppressive_occupation } 
+				multiply_temp_variable = { var = killed_multiplier value = 1.60 } 
+				add_to_temp_variable = { var = resistance_change value = -2 } 
+			}
+			if = { 
+				limit = { occupation_law = harsh_quotas_occupation } 
+				multiply_temp_variable = { var = killed_multiplier value = 1.30 } 
+				add_to_temp_variable = { var = resistance_change value = -1 } 
+			}
+			if = { 
+				limit = { occupation_law = martial_law_occupation } 
+				multiply_temp_variable = { var = killed_multiplier value = 1.20 } 
+				add_to_temp_variable = { var = resistance_change value = -0.8 } 
+			}
+			if = { 
+				limit = { occupation_law = military_governor_occupation } 
+				multiply_temp_variable = { var = killed_multiplier value = 1.10 } 
+				add_to_temp_variable = { var = resistance_change value = -0.6 } 
+			}
+			if = { 
+				limit = { occupation_law = secret_police_oversight } 
+				multiply_temp_variable = { var = killed_multiplier value = 1.40 } 
+				add_to_temp_variable = { var = resistance_change value = -1.3 } 
+			}
+			if = { 
+				limit = { occupation_law = local_police_force_garrison } 
+				multiply_temp_variable = { var = killed_multiplier value = 0.80 } 
+				add_to_temp_variable = { var = resistance_change value = 0.7 } 
+			}
+			if = { 
+				limit = { occupation_law = foreign_civilian_oversight } 
+				multiply_temp_variable = { var = killed_multiplier value = 0.90 } 
+				add_to_temp_variable = { var = resistance_change value = 1.0 } 
+			}
+
+			set_temp_variable = { var = killed_pop_k value = state_population_k }
+			multiply_temp_variable = { var = killed_pop_k value = killed_multiplier }
+
+			if = { limit = { check_variable = { var = killed_pop_k value = 0 compare = greater_than } } set_temp_variable = { var = killed_pop_k value = 0 } }
+			set_temp_variable = { var = state_population_floor_people value = state_population_k }
+			multiply_temp_variable = { var = state_population_floor_people value = -1000 }
+			if = {
+				limit = { check_variable = { var = killed_pop_k value = state_population_floor_people compare = less_than } }
+				set_temp_variable = { var = killed_pop_k value = state_population_floor_people }
+			}
+			add_manpower = killed_pop_k
+
+			multiply_temp_variable = { var = killed_pop_k value = -1 } # 转为整数
+			
+			multiply_temp_variable = { var = killed_pop_k value = 0.001 }
+			add_to_variable = { global.died_in_mil_crackdowns = killed_pop_k }
+
+			controller = {
+				add_to_variable = { suppress_the_rebels_k = killed_pop_k }
+				add_to_variable = { total_casualties_k = killed_pop_k }
+			}
+ 
+		# 抵抗与顺从的实际变化值
+		add_resistance = resistance_change
+		set_temp_variable = { var = compliance_gain value = resistance_change }
+		multiply_temp_variable = { var = compliance_gain value = -0.1 }
+		add_compliance = compliance_gain
+	}
+}
+#--------------- 核袭击单位伤害计算 ---------------#
+update_nukes_strike_damage_to_units = { 
+	# 计算核打击部队伤害前：按国家快照 casualties_k
+	every_country = { set_variable = { var = pre_nuke_casualties value = casualties_k } }
+	if = { 
+		limit = { has_dynamic_modifier = { modifier = fallout_atomic } }
+		damage_units = {  
+			state = THIS
+			damage = 0.75
+			org_damage = 0.2
+			str_damage = 0.8
+			ratio = yes
+			army = yes
+			navy = yes
+		}
+	}
+	if = {
+		limit = { has_dynamic_modifier = { modifier = fallout_thermonuclear } }
+		damage_units = {  
+			state = THIS
+			damage = 1.00
+			org_damage = 1.00
+			str_damage = 1.00
+			ratio = yes
+			army = yes
+			navy = yes
+		}
+		FROM = {
+			every_neighbor_state = {
+				damage_units = {
+					state = THIS
+					damage = 0.50
+					org_damage = 0.20
+					str_damage = 0.80
+					ratio = yes
+					army = yes
+					navy = yes
+				}
+			}
+		}
+	}
+	# 将核打击造成的部队伤亡归因到各受影响国家
+	every_country = {
+		if = {
+			limit = { check_variable = { casualties_k > pre_nuke_casualties } }
+			set_temp_variable = { nuke_direct_damage = casualties_k }
+			subtract_from_temp_variable = { nuke_direct_damage = pre_nuke_casualties }
+			add_to_variable = { mil_casualties_k = nuke_direct_damage }
+			add_to_variable = { total_casualties_k = nuke_direct_damage }
+			add_to_variable = { global.units_killed_by_nukes = nuke_direct_damage }
+			# 清理持久化快照
+			set_variable = { var = pre_nuke_casualties value = 0.0 }
+		}
+	}
+}
+#--------------- 辐射单位伤害计算 ---------------#
+update_radiation_damage_to_units = { 
+	every_country = { set_variable = { var = pre_radiation_casualties value = casualties_k } }
+	if = {
+		limit = {
+			has_dynamic_modifier = { modifier = thermo_radiation_state_modifier }
+		}
+		damage_units = {
+			state = THIS
+			damage = 0.03
+			org_damage = 0.10
+			str_damage = 0.05
+			ratio = yes
+			army = yes
+			navy = yes
+		}
+	}
+	else_if = {
+		limit = {
+			has_dynamic_modifier = { modifier = radiation_state_modifier }
+		}
+		damage_units = {
+			state = THIS
+			damage = 0.02
+			org_damage = 0.06
+			str_damage = 0.03
+			ratio = yes
+			army = yes
+			navy = yes
+		}	
+	}
+	else_if = {
+		limit = {
+			has_dynamic_modifier = { modifier = neighbor_radiation_state_modifier }
+		}
+		damage_units = {
+			state = THIS
+			damage = 0.01
+			org_damage = 0.03
+			str_damage = 0.01
+			ratio = yes
+			army = yes
+			navy = yes
+		}
+	}
+	every_country = { 
+		if = {
+			limit = { check_variable = { casualties_k > pre_radiation_casualties } }
+			set_temp_variable = { radiation_damage = casualties_k }
+			subtract_from_temp_variable = { radiation_damage = pre_radiation_casualties }
+			add_to_variable = { mil_casualties_k = radiation_damage }
+			add_to_variable = { total_casualties_k = radiation_damage }
+			add_to_variable = { global.units_killed_by_radiation = radiation_damage }
+			# 清理持久化快照
+			set_variable = { var = pre_radiation_casualties value = 0.0 }
+		}
+	}
+}
+
+#--------------- 重算各国家“常规军损（K）” ---------------#
+recompute_conventional_mil_per_country = {
+	# 新逻辑：不要把“核/辐射/常规”等不同来源的军事损失在同一时间窗口里重复记入。
+	# 这里不再做“增量叠加 total_casualties_k”，而是按组件重算：
+	# 总伤亡（K）计算式：total_casualties_k = 军事总伤亡(casualties_k) + 平民伤亡(civ_casualties_k) + 清剿/压制(suppress_the_rebels_k)
+	# 这样无论同一州出现 2 种/3 种效果，都不会在 total_casualties_k 里发生重复叠加。
+	# 同时对无伤亡国家不写入变量，避免把变量铺到所有国家。
+	every_country = {
+		if = {
+			limit = {
+				OR = {
+					check_variable = { casualties_k > 0 }
+					check_variable = { civ_casualties_k > 0 }
+					check_variable = { suppress_the_rebels_k > 0 }
+					check_variable = { total_casualties_k > 0 }
+					check_variable = { mil_casualties_k > 0 }
+				}
+			}
+			# 军事伤亡（K）直接镜像 vanilla 的 casualties_k（其本身已包含战斗/核/辐射等对部队造成的伤亡）
+			set_variable = { var = mil_casualties_k value = casualties_k }
+
+			# 由组件重算总伤亡（K），避免重复累计
+			set_temp_variable = { var = new_total_casualties_k value = casualties_k }
+			add_to_temp_variable = { var = new_total_casualties_k value = civ_casualties_k }
+			add_to_temp_variable = { var = new_total_casualties_k value = suppress_the_rebels_k }
+			set_variable = { var = total_casualties_k value = new_total_casualties_k }
+		}
+	}
+}
+#--------------- 全局“常规战斗损失” ---------------#
+recompute_conventional_units_total = {
+	# 新逻辑：全局常规战斗损失 = 全局军事总伤亡 -（核造成的单位损失 + 辐射造成的单位损失）
+	# 需要考虑同一州多效果导致的“核/辐射统计重叠”：这里会把核/辐射的全局值在数学上 clamp 到合理区间，
+	# 保证 nukes + radiation <= total_mil，从而避免重复叠加带来的负数/过度扣减。
+
+	set_variable = { var = global.sum_total_mil_casualties_k value = 0 }
+	every_country = {
+		if = {
+			limit = { check_variable = { casualties_k > 0 } }
+			add_to_variable = { global.sum_total_mil_casualties_k = casualties_k }
+		}
+	}
+
+	set_temp_variable = { var = total_mil_k value = global.sum_total_mil_casualties_k }
+
+	# --- clamp nukes_k 到 [0, total_mil_k] ---
+	set_temp_variable = { var = nukes_k value = global.units_killed_by_nukes }
+	if = {
+		limit = { check_variable = { nukes_k < 0 } }
+		set_temp_variable = { var = nukes_k value = 0 }
+	}
+	set_temp_variable = { var = temp_compare value = nukes_k }
+	subtract_from_temp_variable = { var = temp_compare value = total_mil_k }
+	if = {
+		limit = { check_variable = { temp_compare > 0 } }
+		set_temp_variable = { var = nukes_k value = total_mil_k }
+	}
+
+	# 核打击后剩余军损：remaining_after_nukes = total_mil_k - nukes_k
+	set_temp_variable = { var = remaining_after_nukes value = total_mil_k }
+	subtract_from_temp_variable = { var = remaining_after_nukes value = nukes_k }
+	if = {
+		limit = { check_variable = { remaining_after_nukes < 0 } }
+		set_temp_variable = { var = remaining_after_nukes value = 0 }
+	}
+
+	# --- clamp radiation_k 到 [0, remaining_after_nukes] ---
+	set_temp_variable = { var = radiation_k value = global.units_killed_by_radiation }
+	if = {
+		limit = { check_variable = { radiation_k < 0 } }
+		set_temp_variable = { var = radiation_k value = 0 }
+	}
+	set_temp_variable = { var = temp_compare value = radiation_k }
+	subtract_from_temp_variable = { var = temp_compare value = remaining_after_nukes }
+	if = {
+		limit = { check_variable = { temp_compare > 0 } }
+		set_temp_variable = { var = radiation_k value = remaining_after_nukes }
+	}
+
+	# 常规战争军损：war_k = remaining_after_nukes - radiation_k
+	set_temp_variable = { var = war_k value = remaining_after_nukes }
+	subtract_from_temp_variable = { var = war_k value = radiation_k }
+	if = {
+		limit = { check_variable = { war_k < 0 } }
+		set_temp_variable = { var = war_k value = 0 }
+	}
+
+	# 写回 clamp 后的全局值
+	set_variable = { var = global.units_killed_by_nukes value = nukes_k }
+	set_variable = { var = global.units_killed_by_radiation value = radiation_k }
+	set_variable = { var = global.units_killed_by_war value = war_k }
+}

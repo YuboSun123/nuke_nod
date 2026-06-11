@@ -1,0 +1,81 @@
+#	示例：
+# 
+#	示例：example_dynamic_modifier = {
+#		示例：icon = "GFX_idea_unknown" # 可选：若指定 icon，则会在 GUI 中显示
+#		示例：enable = { always = yes } # 可选：未启用时该修正不会生效
+#		示例：remove_trigger = { always = no } # 可选：为真时会移除该修正
+#       示例：attacker_modifier = no  # 若为 yes，则该修正也会在战斗中读取
+#                                    # 即便参战单位不在该州也会读取
+#
+#		# 修正列表
+#		示例：fuel_cost = 321
+#		示例：max_fuel = var_max_fuel # 将从变量中读取
+#	}
+#
+#
+#	在脚本文件中：
+#
+#	示例：effect = {
+#		示例：add_dynamic_modifier = {
+#			示例：modifier = example_dynamic_modifier
+#			示例：scope = GER # 可选：指定后动态修正的作用域为该 scope（root 为 effect 的作用域）
+#			示例：days = 14 # 可选：经过这么多天后会移除
+#		}
+#	}
+#
+#	可添加到国家、州或指挥官
+#	默认仅每日更新一次，除非用 force_update_dynamic_modifier effect 强制刷新
+# 
+
+radiation_state_modifier = {
+	enable = { always = yes }
+	remove_trigger = { check_variable = { radiation_var < 0.01 } }
+
+	icon = GFX_modifiers_radiation
+
+	radiation_level_modificator = radiation_var
+	monthly_population = population_grown_radiation_effect 
+}
+
+thermo_radiation_state_modifier = {
+	enable = { always = yes }
+	remove_trigger = { check_variable = { radiation_var < 0.01 } }
+
+	icon = GFX_modifiers_hot_radiation
+
+	radiation_level_modificator = radiation_var
+	monthly_population = population_grown_radiation_effect 
+}
+
+neighbor_radiation_state_modifier = { 
+	enable = { always = yes }
+	remove_trigger = { check_variable = { radiation_var < 0.01 } }
+
+	icon = GFX_modifiers_radiation_state_modifier
+
+	radiation_level_modificator = radiation_var
+	monthly_population = population_grown_radiation_effect
+}
+
+bombing_for_state_modifier = { 
+	enable = { always = yes }
+	icon = GFX_bombing_state_modifier
+
+	remove_trigger = { 
+		days_since_last_strategic_bombing > 1
+	}
+	# 此动态修正用于显示某州因轰炸死亡的人数
+	killed_population_modificator = state_number_of_people_killed
+	local_supply_impact_factor = homeless_local_supply_impact_factor
+}
+
+homeless_work_disruption_state_modifier = {
+	enable = { always = yes }
+	icon = GFX_decision_generic_scorched_earth
+	
+    remove_trigger = { 
+		check_variable = { state_refugee_pool_k < 1.0 }
+	}
+	local_supplies = homeless_supply_impact_factor
+}
+

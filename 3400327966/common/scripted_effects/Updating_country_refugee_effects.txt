@@ -1,0 +1,752 @@
+# --------------- 难民系统 ---------------#
+# 迁移公共逻辑
+# 调用方式：在州作用域内用 owner/controller 进入国家作用域后调用
+# - ROOT: 接收方国家（owner 或 controller）
+# - PREV: 迁出源州（state）
+
+state_population_result_in = { 
+	# 性能门控：只有“确实可能产生外逃/需要清理递减状态”的州才进入完整计算流程；其他州直接跳过，避免无意义的计算和变量操作。
+	if = {
+		limit = {
+			state_population_k > 1
+			OR = {
+				is_border_war_state = yes
+				days_since_last_strategic_bombing < 3
+				has_state_flag = has_radiation
+				AND = {
+					has_state_flag = nuke_repair_wasteland_state
+					is_demilitarized_zone = no
+				}
+				# 被占态/或刚脱离被占态需要清理 occupation_exodus_* 状态
+				AND = {
+					is_fully_controlled_by = controller
+					NOT = { is_fully_controlled_by = owner }
+				}
+				has_state_flag = occupation_exodus_started
+				check_variable = { occupation_exodus_bonus > 0 }
+			}
+		}
+		# 计算迁移率：按触发源叠加
+		set_temp_variable = { var = outflow_rate_daily value = 0.0 }
+
+		# 前线/争夺州：持续外逃
+		if = {
+			limit = { is_border_war_state = yes }
+			# 不写死固定比例：在区间内随机
+			set_temp_variable = { var = border_war_outflow_add value = 0.001 }
+			set_temp_variable_to_random = { var = border_war_factor min = 0.700 max = 1.300 }
+			multiply_temp_variable = { var = border_war_outflow_add value = border_war_factor }
+			add_to_temp_variable = { var = outflow_rate_daily value = border_war_outflow_add }
+		}
+
+		# 被占州：完全被控制者占领时，短期外逃更强，随后递减
+		# 说明：此处用“州被控制者完全控制 + 不被拥有者完全控制”来识别“完全被占”。
+		if = {
+			limit = {
+				is_fully_controlled_by = controller
+				NOT = { is_fully_controlled_by = owner }
+			}
+			# 被占递减外逃：仅在“首次进入被占状态”时触发一次，后续按周衰减
+			if = {
+				limit = { NOT = { has_state_flag = occupation_exodus_started } }
+				set_state_flag = occupation_exodus_started
+				# 不写死固定比例：在区间内随机
+				set_temp_variable_to_random = { var = occupation_exodus_init min = 0.010 max = 0.014 }
+				set_variable = { var = occupation_exodus_bonus value = occupation_exodus_init }
+			}
+
+			# 叠加当前加成
+			set_temp_variable = { var = occupation_bonus_temp value = occupation_exodus_bonus }
+			add_to_temp_variable = { var = outflow_rate_daily value = occupation_bonus_temp }
+
+			# 衰减：每日乘 0.97（更平滑，避免几天内清零）
+			multiply_temp_variable = { var = occupation_bonus_temp value = 0.97 }
+			set_variable = { var = occupation_exodus_bonus value = occupation_bonus_temp }
+			if = {
+				limit = { check_variable = { occupation_exodus_bonus < 0.001 } }
+				clear_variable = occupation_exodus_bonus
+			}
+		}
+		else = {
+			# 脱离被占状态后，允许下次再次被占时重新触发一次性冲击
+			if = { 
+				limit = { 
+					has_state_flag = occupation_exodus_started 
+				} 
+				clr_state_flag = occupation_exodus_started 
+			}
+			if = { 
+				limit = { 
+					check_variable = {
+						occupation_exodus_bonus > 0 
+					} 
+				} 
+				clear_variable = occupation_exodus_bonus 
+			}
+		}
+
+		# 最近战略轰炸：加速外逃
+		if = {
+			limit = { days_since_last_strategic_bombing < 3 }
+			# 不写死固定比例：在区间内随机
+			set_temp_variable_to_random = { var = bombing_outflow_add min = 0.003 max = 0.005 }
+			add_to_temp_variable = { var = outflow_rate_daily value = bombing_outflow_add }
+		}
+
+		# 辐射州：辐射存在时外逃；辐射消失后（has_radiation 清除）自然停止
+		if = {
+			limit = { has_state_flag = has_radiation }
+			set_temp_variable = { var = rad_scale value = radiation_var }
+			# 每 1 点辐射额外外逃：基值 * 随机系数（避免小数位超限）
+			multiply_temp_variable = { var = rad_scale value = 0.001 }
+			set_temp_variable_to_random = { var = rad_factor min = 0.800 max = 1.200 }
+			multiply_temp_variable = { var = rad_scale value = rad_factor }
+			# 基础外逃：在区间内随机
+			set_temp_variable_to_random = { var = rad_base_add min = 0.002 max = 0.004 }
+			add_to_temp_variable = { var = outflow_rate_daily value = rad_base_add }
+			add_to_temp_variable = { var = outflow_rate_daily value = rad_scale }
+		}
+
+		# 废土州：解除非军事区后开始迁移（外逃更强）
+		if = {
+			limit = {
+				has_state_flag = nuke_repair_wasteland_state
+				is_demilitarized_zone = no
+			}
+			# 废土外逃递减加成：解除非军事区后的前期外逃更强，之后按周衰减至 0
+			# baseline：废土长期额外外逃
+			# 不写死固定比例：在区间内随机
+			set_temp_variable_to_random = { var = wasteland_baseline_add min = 0.003 max = 0.005 }
+			add_to_temp_variable = { var = outflow_rate_daily value = wasteland_baseline_add }
+
+			# 初始化一次性加成（若未设置或已衰减至接近 0）
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { wasteland_exodus_bonus > 0 } }
+						check_variable = { wasteland_exodus_bonus < 0.0005 }
+					}
+				}
+				# 不写死固定比例：在区间内随机
+				set_temp_variable_to_random = { var = wasteland_exodus_init min = 0.008 max = 0.012 }
+				set_variable = { var = wasteland_exodus_bonus value = wasteland_exodus_init }
+			}
+
+			# 叠加当前加成
+			set_temp_variable = { var = wasteland_bonus_temp value = wasteland_exodus_bonus }
+			add_to_temp_variable = { var = outflow_rate_daily value = wasteland_bonus_temp }
+
+			# 衰减：每日乘 0.97
+			multiply_temp_variable = { var = wasteland_bonus_temp value = 0.97 }
+			set_variable = { var = wasteland_exodus_bonus value = wasteland_bonus_temp }
+			if = {
+				limit = { check_variable = { wasteland_exodus_bonus < 0.01 } }
+				clear_variable = wasteland_exodus_bonus
+			}
+		}
+		else = {
+			# 离开“废土且非军事区解除”条件时，清理递减变量，避免无意义的持续门控/存量残留
+			if = {
+				limit = { check_variable = { wasteland_exodus_bonus > 0 } }
+				clear_variable = wasteland_exodus_bonus
+			}
+		}
+
+		# 全局缩放：整体降速
+		multiply_temp_variable = { var = outflow_rate_daily value = 0.008 }
+
+		# 计算难民人数（K）
+		set_temp_variable = { var = outflow_k value = state_population_k }
+		multiply_temp_variable = { var = outflow_k value = outflow_rate_daily }
+
+		# 仅写入州难民池；国家/全局难民池由显示刷新阶段按州池重算
+		if = {
+			limit = { check_variable = { outflow_k > 0 } }
+			add_to_variable = { var = state_refugee_pool_k value = outflow_k }
+			if = {
+				limit = { check_variable = { var = state_refugee_pool_k value = 0 compare = less_than } }
+				set_variable = { var = state_refugee_pool_k value = 0 }
+			}
+			if = {
+				limit = { check_variable = { var = state_refugee_pool_k value = state_population_k compare = greater_than } }
+				set_variable = { var = state_refugee_pool_k value = state_population_k }
+			}
+			refresh_refugee_state_display_variables = yes
+		}
+	}
+}
+
+state_population_migration = {
+	# 只有当前仍不安全的州才允许继续外迁；安全州只能走月度就地安置
+	if = {
+		limit = {
+			check_variable = { state_refugee_pool_k > 0.01 }
+			OR = {
+				is_border_war_state = yes
+				AND = {
+					is_fully_controlled_by = controller
+					NOT = { is_fully_controlled_by = owner }
+				}
+				days_since_last_strategic_bombing < 3
+				has_state_flag = has_radiation
+				AND = {
+					has_state_flag = nuke_repair_wasteland_state
+					is_demilitarized_zone = no
+				}
+			}
+		}
+
+		# 本周迁移难民总量（K）：当前州难民池 * 随机比例（避免每周清空）
+		set_temp_variable_to_random = { var = outflow_weekly_rate min = 0.10 max = 0.30 }
+		set_temp_variable = { var = outflow_k value = state_refugee_pool_k }
+		multiply_temp_variable = { var = outflow_k value = outflow_weekly_rate }
+		# 迁移人数（人）写入全局临时变量，且上限不超过源州当前难民池，方便跨作用域取用
+		set_temp_variable = { var = outflow_people value = outflow_k }
+		multiply_temp_variable = { var = outflow_people value = 1000 }
+		round_temp_variable = outflow_people
+		if = {
+			limit = {
+				check_variable = {
+					var = outflow_people
+					value = 0
+					compare = less_than
+				}
+			}
+			set_temp_variable = { var = outflow_people value = 0 }
+		}
+		set_temp_variable = { var = outflow_people_cap value = state_refugee_pool_k }
+		multiply_temp_variable = { var = outflow_people_cap value = 1000 }
+		if = {
+			limit = {
+				check_variable = {
+					var = outflow_people
+					value = outflow_people_cap
+					compare = greater_than
+				}
+			}
+			set_temp_variable = { var = outflow_people value = outflow_people_cap }
+		}
+		set_variable = { var = global.outflow_people value = outflow_people }
+
+		# 分散迁移：空/海一次性后送 + 陆路相邻分散（2-5 个相邻州）
+		if = {
+			limit = { check_variable = { outflow_people > 0 } }
+			if = {
+				limit = { NOT = { is_fully_controlled_by = owner } }
+				# 被占/争夺州：迁入“拥有者仍控制的安全州”
+				owner = { weekly_migrate_from_state = yes }
+			}
+			else = {
+				# 非被占州：迁入“控制者的安全州”
+				controller = { weekly_migrate_from_state = yes }
+			}
+
+			# 若本州难民池本周已基本清空，则清除“一次性后送”标记，便于未来新一波难民再次触发
+			if = {
+				limit = { check_variable = { state_refugee_pool_k < 0.01 } }
+				clr_state_flag = air_evac_done
+				clr_state_flag = sea_evac_done
+			}
+		}
+	}
+}
+
+weekly_migrate_from_state = {
+	# 需要至少 1 个可用相邻目的地；否则不迁移
+	if = {
+		limit = {
+			PREV = {
+				any_neighbor_state = {
+					is_valid_internal_refugee_destination = yes
+					is_fully_controlled_by = ROOT
+				}
+			}
+		}
+
+		# 起点州 -人口（只扣一次，且不超过源州当前难民池）
+		PREV = {
+			# 真实人口：从起点州扣除（人）；这里按源州难民池做二次钳制
+			set_temp_variable = { var = temp_people value = global.outflow_people }
+			multiply_temp_variable = { var = temp_people value = -1 }
+			if = {
+				limit = { check_variable = { var = temp_people value = 0 compare = greater_than } }
+				set_temp_variable = { var = temp_people value = 0 }
+			}
+			set_temp_variable = { var = state_population_floor_people value = state_refugee_pool_k }
+			multiply_temp_variable = { var = state_population_floor_people value = -1000 }
+			if = {
+				limit = { check_variable = { var = temp_people value = state_population_floor_people compare = less_than } }
+				set_temp_variable = { var = temp_people value = state_population_floor_people }
+			}
+			add_manpower = temp_people
+			add_to_variable = { var = state_refugee_weekly_pop_delta value = temp_people }
+
+			set_temp_variable = { var = actual_outflow_people value = temp_people }
+			multiply_temp_variable = { var = actual_outflow_people value = -1 }
+			set_variable = { var = global.outflow_people value = actual_outflow_people }
+
+			set_temp_variable = { var = temp_k value = temp_people }
+			multiply_temp_variable = { var = temp_k value = 0.001 }
+			add_to_variable = { var = state_refugee_pool_k value = temp_k }
+			if = {
+				limit = { check_variable = { var = state_refugee_pool_k value = 0 compare = less_than } }
+				set_variable = { var = state_refugee_pool_k value = 0 }
+			}
+			if = {
+				limit = { check_variable = { var = state_refugee_pool_k value = state_population_k compare = greater_than } }
+				set_variable = { var = state_refugee_pool_k value = state_population_k }
+			}
+			if = {
+				limit = { check_variable = { state_refugee_pool_k > 1.0 }}
+				add_dynamic_modifier = { modifier = homeless_work_disruption_state_modifier }
+			}
+		}
+
+		# 国家统计（按 controller）：若源州控制者 != 接收方(ROOT)，则仅记录跨境净流入/流出；
+		# 国家难民池本体由显示刷新阶段按各州当前 controller 重算。
+		set_temp_variable = { var = country_move_k value = global.outflow_people }
+		multiply_temp_variable = { var = country_move_k value = 0.001 }
+		set_temp_variable = { var = country_move_k_neg value = country_move_k }
+		multiply_temp_variable = { var = country_move_k_neg value = -1 }
+		PREV = {
+			if = {
+				# 注意：争夺州通常不是“完全控制”，因此这里不能用 is_fully_controlled_by。
+				# 只在源州 controller 与接收方(ROOT)不同的情况下，才视为跨境转移。
+				limit = { NOT = { is_controlled_by = ROOT } }
+				# 源控制者：跨境净流出 -> 负
+				controller = {
+					add_to_variable = { var = country_refugee_border_net_weekly_k value = country_move_k_neg }
+				}
+				# 接收控制者(ROOT)：跨境净流入 -> 正
+				ROOT = {
+					add_to_variable = { var = country_refugee_border_net_weekly_k value = country_move_k }
+				}
+			}
+		}
+
+		# remaining_people：剩余待分配人数（人），来源于已按源州难民池截断后的实际迁出量
+		set_temp_variable = { var = remaining_people value = global.outflow_people }
+
+		# 空运后送：若源州有机场，则额外抽一小份难民随机后送到后方有机场的安全州（一次性）
+		set_temp_variable = { var = air_evac_people value = 0 }
+		set_temp_variable = { var = did_air_evac value = 0 }
+		if = {
+			limit = {
+				PREV = {
+					air_base > 0
+					NOT = { has_state_flag = air_evac_done }
+				}
+				# 性能：人数过小则跳过全图目的地搜索
+				check_variable = { remaining_people > 300 }
+			}
+			set_temp_variable = { var = air_evac_people value = remaining_people }
+			set_temp_variable_to_random = { var = air_evac_share min = 0.05 max = 0.15 }
+			multiply_temp_variable = { var = air_evac_people value = air_evac_share }
+			round_temp_variable = air_evac_people
+			if = {
+				limit = { check_variable = { air_evac_people < 1 } }
+				set_temp_variable = { var = air_evac_people value = 0 }
+			}
+			if = {
+				limit = { check_variable = { air_evac_people > 0 } }
+				random = {
+					chance = 85
+					random_controlled_state = {
+						limit = {
+							is_valid_internal_refugee_destination = yes
+							air_base > 0
+							is_border_war_state = no
+						}
+						# 真实人口：迁入目的州（人）
+						add_manpower = air_evac_people
+						add_to_variable = { var = state_refugee_weekly_pop_delta value = air_evac_people }
+						set_temp_variable = { var = air_evac_k value = air_evac_people }
+						multiply_temp_variable = { var = air_evac_k value = 0.001 }
+						add_to_variable = { var = state_refugee_pool_k value = air_evac_k }
+						if = {
+							limit = { check_variable = { var = state_refugee_pool_k value = 0 compare = less_than } }
+							set_variable = { var = state_refugee_pool_k value = 0 }
+						}
+						if = {
+							limit = { check_variable = { var = state_refugee_pool_k value = state_population_k compare = greater_than } }
+							set_variable = { var = state_refugee_pool_k value = state_population_k }
+						}
+						set_temp_variable = { var = did_air_evac value = 1 }
+					}
+				}
+			}
+			if = {
+				limit = { check_variable = { did_air_evac > 0 } }
+				PREV = { set_state_flag = air_evac_done }
+				set_temp_variable = { var = temp_delta value = air_evac_people }
+				multiply_temp_variable = { var = temp_delta value = -1 }
+				add_to_temp_variable = { var = remaining_people value = temp_delta }
+			}
+		}
+
+		# 海运后送：若源州有海军基地，则额外抽一小份难民随机后送到后方有海军基地的安全州（一次性）
+		set_temp_variable = { var = sea_evac_people value = 0 }
+		set_temp_variable = { var = did_sea_evac value = 0 }
+		if = {
+			limit = {
+				PREV = {
+					naval_base > 0
+					NOT = { has_state_flag = sea_evac_done }
+				}
+				# 性能：人数过小则跳过全图目的地搜索
+				check_variable = { remaining_people > 1000 }
+			}
+			set_temp_variable = { var = sea_evac_people value = remaining_people }
+			set_temp_variable_to_random = { var = sea_evac_share min = 0.05 max = 0.15 }
+			multiply_temp_variable = { var = sea_evac_people value = sea_evac_share }
+			round_temp_variable = sea_evac_people
+			if = {
+				limit = { check_variable = { sea_evac_people < 1 } }
+				set_temp_variable = { var = sea_evac_people value = 0 }
+			}
+			if = {
+				limit = { check_variable = { sea_evac_people > 0 } }
+				random = {
+					chance = 85
+					random_controlled_state = {
+						limit = {
+							is_valid_internal_refugee_destination = yes
+							naval_base > 0
+							is_border_war_state = no
+						}
+						# 真实人口：迁入目的州（人）
+						add_manpower = sea_evac_people
+						add_to_variable = { var = state_refugee_weekly_pop_delta value = sea_evac_people }
+						set_temp_variable = { var = sea_evac_k value = sea_evac_people }
+						multiply_temp_variable = { var = sea_evac_k value = 0.001 }
+						add_to_variable = { var = state_refugee_pool_k value = sea_evac_k }
+						if = {
+							limit = { check_variable = { var = state_refugee_pool_k value = 0 compare = less_than } }
+							set_variable = { var = state_refugee_pool_k value = 0 }
+						}
+						if = {
+							limit = { check_variable = { var = state_refugee_pool_k value = state_population_k compare = greater_than } }
+							set_variable = { var = state_refugee_pool_k value = state_population_k }
+						}
+						set_temp_variable = { var = did_sea_evac value = 1 }
+					}
+				}
+			}
+			if = {
+				limit = { check_variable = { did_sea_evac > 0 } }
+				PREV = { set_state_flag = sea_evac_done }
+				set_temp_variable = { var = temp_delta value = sea_evac_people }
+				multiply_temp_variable = { var = temp_delta value = -1 }
+				add_to_temp_variable = { var = remaining_people value = temp_delta }
+			}
+		}
+
+		# 陆路分散：仅把 remaining_people 分散到 2-5 个相邻安全州（人数不足时自动下调目的地数）
+		if = {
+			limit = { check_variable = { remaining_people > 0 } }
+			# 基于 remaining_people（已扣除空/海后送）重新决定分散目的地数：2-5，且不超过剩余人数
+			set_temp_variable = { var = dest_count value = 1 }
+			if = {
+				limit = { check_variable = { remaining_people > 1 } }
+				set_temp_variable = { var = dest_count value = 2 }
+			}
+			if = {
+				limit = { check_variable = { remaining_people > 2 } }
+				set_temp_variable_to_random = { var = dest_count min = 2 max = 3 integer = yes }
+			}
+			if = {
+				limit = { check_variable = { remaining_people > 3 } }
+				set_temp_variable_to_random = { var = dest_count min = 2 max = 4 integer = yes }
+			}
+			if = {
+				limit = { check_variable = { remaining_people > 4 } }
+				set_temp_variable_to_random = { var = dest_count min = 2 max = 5 integer = yes }
+			}
+
+			set_temp_variable = { var = loop_end value = dest_count }
+			add_to_temp_variable = { var = loop_end value = -1 }
+
+			# 前 N-1 份：随机切分
+			if = {
+				limit = { check_variable = { var = loop_end value = 1 compare = greater_than_or_equals } }
+				for_loop_effect = {
+					start = 1
+					end = loop_end
+					value = loop_value
+
+					# chunk_min = remaining * 10%
+					set_temp_variable = { var = chunk_min value = remaining_people }
+					multiply_temp_variable = { var = chunk_min value = 0.10 }
+					round_temp_variable = chunk_min
+					if = {
+						limit = { check_variable = { var = chunk_min value = 1 compare = less_than } }
+						set_temp_variable = { var = chunk_min value = 1 }
+					}
+
+					# chunk_max = remaining * 50%
+					set_temp_variable = { var = chunk_max value = remaining_people }
+					multiply_temp_variable = { var = chunk_max value = 0.50 }
+					round_temp_variable = chunk_max
+					if = {
+						limit = { check_variable = { var = chunk_max value = chunk_min compare = less_than } }
+						set_temp_variable = { var = chunk_max value = chunk_min }
+					}
+
+					# 随机切一块
+					set_temp_variable_to_random = { var = chunk_people min = chunk_min max = chunk_max integer = yes }
+					round_temp_variable = chunk_people
+
+					# 分配到随机安全邻州（尽量不重复）
+					PREV = {
+						if = {
+							limit = {
+								any_neighbor_state = {
+									is_valid_internal_refugee_destination = yes
+									is_fully_controlled_by = ROOT
+									NOT = { has_state_flag = tmp_refugee_weekly_dest }
+								}
+							}
+							random_neighbor_state = {
+								limit = {
+									is_valid_internal_refugee_destination = yes
+									is_fully_controlled_by = ROOT
+									NOT = { has_state_flag = tmp_refugee_weekly_dest }
+								}
+								set_state_flag = tmp_refugee_weekly_dest
+								add_manpower = chunk_people
+								add_to_variable = { var = state_refugee_weekly_pop_delta value = chunk_people }
+								set_temp_variable = { var = chunk_k value = chunk_people }
+								multiply_temp_variable = { var = chunk_k value = 0.001 }
+								add_to_variable = { var = state_refugee_pool_k value = chunk_k }
+								if = {
+									limit = { check_variable = { var = state_refugee_pool_k value = 0 compare = less_than } }
+									set_variable = { var = state_refugee_pool_k value = 0 }
+								}
+								if = {
+									limit = { check_variable = { var = state_refugee_pool_k value = state_population_k compare = greater_than } }
+									set_variable = { var = state_refugee_pool_k value = state_population_k }
+								}
+							}
+						}
+						else = {
+							random_neighbor_state = {
+								limit = {
+									is_valid_internal_refugee_destination = yes
+									is_fully_controlled_by = ROOT
+								}
+								add_manpower = chunk_people
+								add_to_variable = { var = state_refugee_weekly_pop_delta value = chunk_people }
+								set_temp_variable = { var = chunk_k value = chunk_people }
+								multiply_temp_variable = { var = chunk_k value = 0.001 }
+								add_to_variable = { var = state_refugee_pool_k value = chunk_k }
+								if = {
+									limit = { check_variable = { var = state_refugee_pool_k value = 0 compare = less_than } }
+									set_variable = { var = state_refugee_pool_k value = 0 }
+								}
+								if = {
+									limit = { check_variable = { var = state_refugee_pool_k value = state_population_k compare = greater_than } }
+									set_variable = { var = state_refugee_pool_k value = state_population_k }
+								}
+							}
+						}
+					}
+
+					# remaining -= chunk
+					set_temp_variable = { var = temp_delta value = chunk_people }
+					multiply_temp_variable = { var = temp_delta value = -1 }
+					add_to_temp_variable = { var = remaining_people value = temp_delta }
+				}
+			}
+
+			# 最后一份：把剩余全部分配到一个随机安全邻州
+			PREV = {
+				if = {
+					limit = {
+						any_neighbor_state = {
+							is_valid_internal_refugee_destination = yes
+							is_fully_controlled_by = ROOT
+							NOT = { has_state_flag = tmp_refugee_weekly_dest }
+						}
+					}
+					random_neighbor_state = {
+						limit = {
+							is_valid_internal_refugee_destination = yes
+							is_fully_controlled_by = ROOT
+							NOT = { has_state_flag = tmp_refugee_weekly_dest }
+						}
+						set_state_flag = tmp_refugee_weekly_dest
+						add_manpower = remaining_people
+						add_to_variable = { var = state_refugee_weekly_pop_delta value = remaining_people }
+						set_temp_variable = { var = chunk_k value = remaining_people }
+						multiply_temp_variable = { var = chunk_k value = 0.001 }
+						add_to_variable = { var = state_refugee_pool_k value = chunk_k }
+						if = {
+							limit = { check_variable = { var = state_refugee_pool_k value = 0 compare = less_than } }
+							set_variable = { var = state_refugee_pool_k value = 0 }
+						}
+						if = {
+							limit = { check_variable = { var = state_refugee_pool_k value = state_population_k compare = greater_than } }
+							set_variable = { var = state_refugee_pool_k value = state_population_k }
+						}
+					}
+				}
+				else = {
+					random_neighbor_state = {
+						limit = {
+							is_valid_internal_refugee_destination = yes
+							is_fully_controlled_by = ROOT
+						}
+						add_manpower = remaining_people
+						add_to_variable = { var = state_refugee_weekly_pop_delta value = remaining_people }
+						set_temp_variable = { var = chunk_k value = remaining_people }
+						multiply_temp_variable = { var = chunk_k value = 0.001 }
+						add_to_variable = { var = state_refugee_pool_k value = chunk_k }
+						if = {
+							limit = { check_variable = { var = state_refugee_pool_k value = 0 compare = less_than } }
+							set_variable = { var = state_refugee_pool_k value = 0 }
+						}
+						if = {
+							limit = { check_variable = { var = state_refugee_pool_k value = state_population_k compare = greater_than } }
+							set_variable = { var = state_refugee_pool_k value = state_population_k }
+						}
+					}
+				}
+			}
+		}
+
+		# 清理相邻州临时标记（只影响本次周迁移）
+		PREV = {
+			every_neighbor_state = {
+				limit = { has_state_flag = tmp_refugee_weekly_dest }
+				clr_state_flag = tmp_refugee_weekly_dest
+			}
+		}
+	}
+}
+
+state_population_resettlement = { 
+	# 月度“就地安置/融入”：仅减少难民池，不再加人口（避免重复）
+	# - state_refugee_pool_k：该州仍处于“难民/未完全融入”的人口（千人）
+	# - 安置后仅减少州难民池；国家/全局难民池由显示刷新阶段按州池重算
+	# - 用整数（人）结算，避免浮点漂移
+	if = {
+		limit = {
+			check_variable = { state_refugee_pool_k > 0.001 } 
+			# 资格门槛：相对稳定/可治理
+			is_border_war_state = no          # 非前线
+			is_fully_controlled_by = controller    # 允许当前控制者完全控制的州安置：既包括本土安全州，也包括稳定被占州；争夺州仍被排除
+			is_demilitarized_zone = no        # 非军事区
+			NOT = { has_state_flag = has_radiation }                 # 非辐射州
+			NOT = { has_state_flag = nuke_repair_wasteland_state }   # 非废土州
+		}
+
+		# settle_rate：随机安置率
+		set_temp_variable_to_random = { var = settle_rate min = 0.001 max = 0.005 }
+
+		# 近期战略轰炸：显著降低安置效率
+		if = {
+			limit = { days_since_last_strategic_bombing < 7 }
+			multiply_temp_variable = { var = settle_rate value = 0.002 }
+		}
+		if = {
+			limit = { days_since_last_strategic_bombing < 2 }
+			multiply_temp_variable = { var = settle_rate value = 0.02 }
+		}
+
+		# 州内有资源有工厂：提高（更易就业与财政投入）
+		if = {
+			limit = {
+				OR = {
+					has_resources_amount = { resource = steel amount > 1 }
+					has_resources_amount = { resource = aluminium amount > 1 }
+					has_resources_amount = { resource = oil amount > 0 }
+					has_resources_amount = { resource = rubber amount > 0 }
+					has_resources_amount = { resource = tungsten amount > 0 }
+					has_resources_amount = { resource = chromium amount > 0 }
+					has_resources_amount = { resource = coal  amount > 0 }
+					industrial_complex > 0  
+					arms_factory > 0      
+				}
+			}
+			add_to_temp_variable = { var = settle_rate value = 0.001 } 
+		}
+
+		# 国家稳定度：提高（行政/秩序更好）
+		controller = {
+			if = {
+				limit = { has_stability > 0.80 }
+				PREV = { add_to_temp_variable = { var = settle_rate value = 0.02 } }
+			}
+			if = {
+				limit = {
+					has_stability > 0.60
+					NOT = { has_stability > 0.80 }
+				}
+				PREV = { add_to_temp_variable = { var = settle_rate value = 0.01 } }
+			}
+		}
+
+		# 拥挤惩罚：难民池越大，融入比例越低（避免数月清空不现实）
+		if = {
+			limit = { check_variable = { state_refugee_pool_k > 0.001 } }
+			# crowd_penalty = 1 / (1 + (refugee_k / (pop_k * 5%)))
+			# 说明：当难民池达到州人口的 5% 时，安置率将被除以 2；当难民池达到州人口的 10% 时，安置率将被除以 3，以此类推，形成递减的拥挤惩罚
+			set_temp_variable = { var = crowd_base_k value = state_population_k }
+			multiply_temp_variable = { var = crowd_base_k value = 0.05 }
+			if = {
+				limit = { check_variable = { var = crowd_base_k value = 0.1 compare = less_than } }
+				set_temp_variable = { var = crowd_base_k value = 0.1 }
+			}
+			set_temp_variable = { var = crowd_penalty value = state_refugee_pool_k }
+			divide_temp_variable = { var = crowd_penalty value = crowd_base_k }
+			add_to_temp_variable = { var = crowd_penalty value = 1.0 }
+			set_temp_variable = { var = crowd_factor value = 1.0 }
+			divide_temp_variable = { var = crowd_factor value = crowd_penalty }
+			multiply_temp_variable = { var = settle_rate value = crowd_factor }
+		}
+
+		# 以“人”为单位结算；实际安置人数取 当前难民 / 理论安置 / 州承载上限 三者最小值
+		set_temp_variable = { var = pool_people value = state_refugee_pool_k }
+		multiply_temp_variable = { var = pool_people value = 1000 }
+
+		# 州承载上限（人）= state_population_k * 10，且不超过当前难民人数
+		set_temp_variable = { var = settle_cap_people value = state_population_k }
+		multiply_temp_variable = { var = settle_cap_people value = 10 }
+		if = {
+			limit = { check_variable = { var = settle_cap_people value = pool_people compare = greater_than } }
+			set_temp_variable = { var = settle_cap_people value = pool_people }
+		}
+
+		# 理论安置人数（人）
+		set_temp_variable = { var = settle_people value = pool_people }
+		multiply_temp_variable = { var = settle_people value = settle_rate }
+		round_temp_variable = settle_people
+
+		# 施加州承载上限
+		if = {
+			limit = { check_variable = { var = settle_people value = settle_cap_people compare = greater_than } }
+			set_temp_variable = { var = settle_people value = settle_cap_people }
+		}
+
+		# 执行：同步扣除州难民池（K）
+		if = {
+			limit = { check_variable = { var = settle_people value = 1 compare = greater_than_or_equals } }
+			add_to_variable = { var = state_refugee_resettled_total_people value = settle_people }
+			# 用同一份 delta（K）驱动州池扣减；注意 settle_people 单位为“人”，需换算为 K（千人）
+			set_temp_variable = { var = settle_delta_k_neg value = settle_people }
+			multiply_temp_variable = { var = settle_delta_k_neg value = 0.001 }
+			multiply_temp_variable = { var = settle_delta_k_neg value = -1 }
+			
+			# 扣减：州难民池（K）
+			add_to_variable = { var = state_refugee_pool_k value = settle_delta_k_neg }
+			if = {
+				limit = { check_variable = { var = state_refugee_pool_k value = 0 compare = less_than } }
+				set_variable = { var = state_refugee_pool_k value = 0 }
+			}
+			if = {
+				limit = { check_variable = { var = state_refugee_pool_k value = state_population_k compare = greater_than } }
+				set_variable = { var = state_refugee_pool_k value = state_population_k }
+			}
+		}
+	}
+}

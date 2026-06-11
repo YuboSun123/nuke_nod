@@ -1,0 +1,87 @@
+#-------------------------------
+# 难民/人口迁移系统
+#-------------------------------
+
+on_actions = {
+	on_startup = {
+		effect = {
+			every_country = {
+				set_variable = { country_refugee_border_net_weekly_k = 0.0 }
+			}
+			every_state = {
+				set_variable = { state_refugee_pool_k = 0.0 }
+				set_variable = { state_refugee_weekly_pop_delta = 0.0 }
+				set_variable = { state_refugee_resettled_total_people = 0.0 }
+			}
+		}
+	}
+	on_daily = { 
+		effect = {
+			# 安全接收州不会走“产生难民州”的加修正路径；当州难民池超过 1 万人时，在周刷新末尾补加停工修正。
+			every_state = {
+				limit = {
+					check_variable = { state_refugee_pool_k > 10.0 }
+					NOT = { has_dynamic_modifier = { modifier = homeless_work_disruption_state_modifier } }
+				}
+				add_dynamic_modifier = { modifier = homeless_work_disruption_state_modifier }
+			}
+			every_state = {
+				limit = {
+					OR = { 
+						is_border_war_state = yes
+						AND = {
+							is_fully_controlled_by = controller
+							NOT = { is_fully_controlled_by = owner }
+						}
+						has_state_flag = occupation_exodus_started
+						check_variable = { occupation_exodus_bonus > 0 }
+						days_since_last_strategic_bombing < 3
+						has_state_flag = has_radiation
+						AND = {
+							has_state_flag = nuke_repair_wasteland_state
+							is_demilitarized_zone = no
+						}
+					}
+				}
+				state_population_result_in = yes
+			}
+		}
+	}
+	on_weekly = {
+		effect = {
+			every_state = {
+				limit = {
+					# 非军事区州不进行迁移（废土州也必须先解除非军事区）
+					is_demilitarized_zone = no
+					# 没有难民池就不跑
+					check_variable = { state_refugee_pool_k > 0.01 }
+					# 仅对“当前仍不安全”的州执行周迁移；安全州只能就地安置，不能继续外迁
+					OR = {
+						is_border_war_state = yes
+						AND = {
+							is_fully_controlled_by = controller
+							NOT = { is_fully_controlled_by = owner }
+						}
+						days_since_last_strategic_bombing < 3
+						has_state_flag = has_radiation
+						has_state_flag = nuke_repair_wasteland_state
+					}
+				}
+				state_population_migration = yes
+			}
+		}
+		
+	}
+	on_monthly = {
+		effect = {
+			every_state = {
+				if = {
+				    limit = { check_variable = { state_refugee_pool_k > 0 } }
+				    state_population_resettlement = yes
+			    }
+			}
+
+			update_refugee_display_variables = yes
+		}
+	}
+}

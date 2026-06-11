@@ -1,0 +1,201 @@
+# 难民系统的 scripted localisation。
+# 这些定义按变量量级选择不同的本地化键，避免 UI 直接显示过长数字。
+# 注意：带 selected_casualty_country 的条目依赖 event target，其他条目依赖当前 state/global 作用域。
+custom_localization = {
+	name = GetStateRefugeePoolText
+
+	text = {
+		trigger = {
+			check_variable = { state_refugee_pool_k > 1000000 }
+		}
+		localization_key = state_refugee_pool_text_km
+	}
+	text = {
+		trigger = {
+			check_variable = { state_refugee_pool_k > 1000 }
+		}
+		localization_key = state_refugee_pool_text_m
+	}
+	text = {
+		localization_key = state_refugee_pool_text_k
+	}
+}
+
+# 州级每周难民变化量，正负数共用同一批本地化键，由键内格式决定显示符号。
+custom_localization = {
+	name = GetStateRefugeeWeeklyDeltaText
+	# 负数
+	text = {
+		trigger = { check_variable = { state_refugee_weekly_pop_delta < -1000000000 } }
+		localization_key = state_refugee_weekly_delta_text_km
+	}
+	text = {
+		trigger = { check_variable = { state_refugee_weekly_pop_delta < -1000000 } }
+		localization_key = state_refugee_weekly_delta_text_m
+	}
+	# 正数
+	text = {
+		trigger = { check_variable = { state_refugee_weekly_pop_delta > 1000000000 } }
+		localization_key = state_refugee_weekly_delta_text_km
+	}
+	text = {
+		trigger = { check_variable = { state_refugee_weekly_pop_delta > 1000000 } }
+		localization_key = state_refugee_weekly_delta_text_m
+	}
+
+	# 默认：K（包含 -999 ~ 999）
+	text = {
+		localization_key = state_refugee_weekly_delta_text_k
+	}
+}
+
+# 国家难民池文本，读取 selected_casualty_country 上的国家变量。
+custom_localization = {
+	name = GetCountryRefugeePoolText
+
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { country_refugee_pool_k > 1000000 }
+			}
+		}
+		localization_key = country_refugee_pool_text_km
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { country_refugee_pool_k > 1000 }
+			}
+		}
+		localization_key = country_refugee_pool_text_m
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { country_refugee_pool_k > 1 }
+			}
+		}
+		localization_key = country_refugee_pool_text_k
+	}
+
+	text = {
+		localization_key = country_refugee_pool_text_people
+	}
+}
+
+# 国家跨境难民净流入/流出周统计，负值表示净流出，正值表示净流入。
+custom_localization = {
+	name = GetCountryRefugeeBorderNetWeeklyText
+
+	# 负数
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { country_refugee_border_net_weekly_k < -1000000 }
+			}
+		}
+		localization_key = country_refugee_border_net_weekly_text_km
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { country_refugee_border_net_weekly_k < -1000 }
+			}
+		}
+		localization_key = country_refugee_border_net_weekly_text_m
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { country_refugee_border_net_weekly_k < -1 }
+			}
+		}
+		localization_key = country_refugee_border_net_weekly_text_k
+	}
+	# 正数
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { country_refugee_border_net_weekly_k > 1000000 }
+			}
+		}
+		localization_key = country_refugee_border_net_weekly_text_km
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { country_refugee_border_net_weekly_k > 1000 }
+			}
+		}
+		localization_key = country_refugee_border_net_weekly_text_m
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { country_refugee_border_net_weekly_k > 1 }
+			}
+		}
+		localization_key = country_refugee_border_net_weekly_text_k
+	}
+	
+	text = {
+		localization_key = country_refugee_border_net_weekly_text_people
+	}
+}
+
+# 全局难民池总量显示。
+custom_localization = {
+	name = GetGlobalRefugeePoolText
+
+	text = {
+		trigger = {
+			check_variable = { global.refugee_pool_k > 1000000 }
+		}
+		localization_key = global_refugee_pool_text_km
+	}
+
+	text = {
+		trigger = {
+			check_variable = { global.refugee_pool_k > 1000 }
+		}
+		localization_key = global_refugee_pool_text_m
+	}
+	text = {
+		trigger = {
+			check_variable = { global.refugee_pool_k > 1 }
+		}
+		localization_key = global_refugee_pool_text_k
+	}
+	text = {
+		localization_key = global_refugee_pool_text_people
+	}
+}
+
+
+
+# 州难民占本州人口比例。
+custom_localization = {
+	name = GetStateRefugeeRatioText
+
+	text = {
+		localization_key = state_refugee_ratio_text
+	}
+}
+
+# 州难民占所属国总难民池比例。
+custom_localization = {
+	name = GetStateRefugeeCountryRatioText
+
+	text = {
+		localization_key = state_refugee_country_ratio_text
+	}
+}
+
+# 州内已安置难民比例。
+custom_localization = {
+	name = GetStateRefugeeResettledRatioText
+
+	text = {
+		localization_key = state_refugee_resettled_ratio_text
+	}
+}

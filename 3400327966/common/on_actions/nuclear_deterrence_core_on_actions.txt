@@ -1,0 +1,33 @@
+#-------------------------------
+# 核威慑系统
+#-------------------------------
+on_actions = {
+	on_weekly = { 
+		effect = {
+			if = {
+				limit = { has_idea = nuclear_state_idea }
+				refresh_deterrence_projection_from_root = yes
+			}
+		}
+	}
+
+	on_monthly = {
+		effect = {
+			# 每月先清空被威慑状态与来源，再由核国家统一重算，避免脱离覆盖后 idea 滞留
+			every_country = {
+				if = {
+					limit = { has_idea = deterrence_state_idea }
+					remove_ideas = deterrence_state_idea
+				}
+				clr_country_flag = deterrence_source_set
+				set_variable = { var = deterrence_primary_source value = 0 }
+				set_variable = { var = deterrence_primary_source_is_strong value = 0 }
+			}
+
+			every_country = {
+				limit = { has_idea = nuclear_state_idea }
+				refresh_deterrence_projection_from_root = yes
+			}
+		}
+	}
+}

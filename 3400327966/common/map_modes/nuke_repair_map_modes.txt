@@ -1,0 +1,91 @@
+scripted_map_modes = {
+	nuke_repair_radiation_anarchy_map_mode = {
+		top = {
+			type = state
+
+			color = {
+				FROM = {
+					set_temp_variable = { alpha = 0.8 }
+
+					# 渐变：低值 = 绿色，高值 = 红色
+					# 将 radiation_var（0..15+）归一化到 0..1 用于着色（约等于 /15）
+						set_temp_variable = {
+							var = tempus
+							value = radiation_var
+						}
+						multiply_temp_variable = {
+							var = tempus
+							value = 0.067
+						}
+						clamp_temp_variable = {
+							var = tempus
+							min = 0.0
+							max = 1.0
+						}
+						set_temp_variable = { red = tempus }
+						set_temp_variable = { green = 1.0 }
+						set_temp_variable = { blue = 0.0 }
+						clamp_temp_variable = {
+							var = red
+							min = 0.0
+							max = 1.0
+						}
+						multiply_temp_variable = {
+							var = tempus
+							value = -1.0
+						}
+						add_to_temp_variable = {
+							var = green
+							value = tempus
+						}
+						if = {
+							limit = {
+								check_variable = {
+									var = tempus
+									value = 0.95
+									compare = greater_than
+								}
+							}
+							set_temp_variable = {
+								var = tempus2
+								value = tempus
+							}
+							multiply_temp_variable = {
+								var = tempus2
+								value = -0.2
+							}
+							add_to_temp_variable = {
+								var = red
+								value = tempus2
+							}
+						}
+				}
+			}
+
+			thickness = no
+
+
+		}
+
+		bottom = {
+			type = country
+
+			color = {
+				set_temp_variable = { alpha = 0.4 }
+				set_temp_variable = { thickness = 10.0 }
+				set_temp_variable = { red = 0.0 }
+				set_temp_variable = { green = 0.0 }
+				set_temp_variable = { blue = 0.0 }
+			}
+
+			thickness = yes
+
+
+		}
+
+		far_text = country
+		near_text = state
+
+		update_daily = yes
+	}
+}

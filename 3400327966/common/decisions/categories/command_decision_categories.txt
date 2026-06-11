@@ -1,0 +1,8 @@
+Strategic_Nuke_Operation = {
+	icon = GFX_STAT_icon
+	picture = GFX_defense_decision
+	allowed = { }	
+	available = { }	
+	visible = { }
+	priority = 10 
+}

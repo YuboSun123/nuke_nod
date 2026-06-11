@@ -1,0 +1,46 @@
+# 你可以在州/国家作用域中用 modifier@modifier_token 访问这些修正
+# 或在指挥官作用域中用 leader_modifier@modifier_token / unit_modifier@modifier_token 访问
+# 用于 tooltip 本地化的 token：modifier_token
+
+# 示例：modifier_token = {
+#
+#	# tooltip 会根据数值正负采用对应颜色
+#	# 可选值："good neutral bad"，默认 bad
+#	示例：color_type = bad 
+#	
+#	# tooltip 中的值类型
+#	# 可选值："number percentage percentage_in_hundred yes_no"，默认 number
+#	示例：value_type = number
+#	
+#	# tooltip 显示精度（小数位数）
+#	示例：precision = 2
+#	
+#	# tooltip 值后缀
+#	# 可选值："none days hours daily"，默认 none
+#	示例：postfix = none
+#	
+#	# 如有需要可定义类别；部分 tooltip 只显示特定类别
+#	# 单个 modifier@modifier_token 可以定义多个类别
+#	# 可用类别（关键字保持原样）：
+#	# none all naval air unit_leader country state army peace politics ai defensive aggressive 
+#	# war_production military_advancements military_equipment autonomy government_in_exile intelligence_agency
+#	# 默认是 all（包含所有类别）
+#	示例：category = army
+#	示例：category = air
+#	示例：category = country
+#}
+
+radiation_level_modificator = {
+	color_type = bad
+	value_type = number
+	precision = 2
+	postfix = hours
+	category = state
+}
+killed_population_modificator = {
+	color_type = good
+	value_type = number
+	precision = 0
+	postfix = none
+	category = state
+}

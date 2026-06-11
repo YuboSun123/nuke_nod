@@ -1,0 +1,42 @@
+
+new_high_technology = { 
+	production_factory_efficiency_gain_factor = 0.05 
+	production_factory_start_efficiency_factor = 0.2
+	production_factory_max_efficiency_factor = 0.10
+}
+
+radar_warning = {
+	air_detection = 2.0  
+	naval_detection = 2.0
+	navy_submarine_detection_factor = 1.0 
+	static_anti_air_hit_chance_factor = 0.8 
+}
+
+technology_laboratory = { 
+	research_speed_factor = 1.0 
+	special_project_speed_factor = 2.0 
+	scientist_xp_gain_factor = 1.0 
+	scientist_breakthrough_bonus_factor = 1.5 
+}
+
+quality_of_soldiers = { 
+	org_loss_when_moving = -0.05 
+	dig_in_speed_factor = 0.10 
+	training_time_factor = -0.20 
+	no_supply_grace = 72
+	land_reinforce_rate = 0.3
+	coordination_bonus = 0.5 
+	invasion_preparation = -0.25 
+	
+}
+
+military_satellite = {
+	spotting_chance = 0.08 
+	positioning = 0.10 
+	sortie_efficiency = 0.15 
+	strategic_bomb_visibility = -0.6 
+	air_night_penalty = -0.30 
+	air_weather_penalty = -0.20 
+	air_superiority_detect_factor = 0.10
+	air_mission_efficiency = 0.3 
+}

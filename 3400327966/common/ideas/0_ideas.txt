@@ -1,0 +1,31 @@
+ideas = {
+	country = { 
+		nuclear_state_idea = {
+			allowed = { always = yes }   
+			picture = "nuclear_armed_nations" 
+
+			modifier = { 
+				diplomatic_pressure_mission_factor = 0.4
+				guarantee_cost = -0.2
+				stability_factor = 0.04
+			}
+		}
+
+		deterrence_state_idea = {
+			allowed = { always = yes }
+			picture = "a_sword_hangs_over"
+		}
+			
+		nuke_repair_admin_collapse_idea = {
+			allowed = { always = yes }
+			picture = "admin_collapse"
+
+			modifier = {
+				surrender_limit = -0.10
+                party_popularity_stability_factor = -0.45
+                opinion_gain_monthly_factor = -0.15
+                consumer_goods_factor = 0.30
+			}
+		}
+	}
+}

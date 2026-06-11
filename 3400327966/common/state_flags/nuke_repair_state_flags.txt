@@ -1,0 +1,3 @@
+state_flags = {
+	nuke_repair_wasteland_state = yes
+}

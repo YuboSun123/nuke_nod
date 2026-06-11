@@ -1,0 +1,103 @@
+#
+# 游戏规则界面显示的选项列表
+#
+# 格式：
+# 示例：rule_token = {
+#	示例：name = "TEXT_KEY_FOR_NAME"                       # 名称的本地化键
+#	示例：required_dlc = "所需DLC名称"                     # 需要的 DLC 名称
+#	示例：desc = "TEXT_KEY_FOR_LONG_DESC"                 # 详细描述的本地化键
+#	示例：group = "TEXT_KEY_FOR_GROUP"                    # 用于筛选；同一规则可属于多个分组
+#	示例：icon = gfx_option_token                           # 可选图标
+#	示例：option = {                                        # 除非另有说明，第一个 option 为默认选项
+#		示例：name = option_token
+#		示例：text = "TEXT_KEY_FOR_OPTION_NAME"             # 选项名称的本地化键
+#		示例：allow_achievements = no                         # 若有任一规则选项将此项设为 no，则无法获得成就
+#		                                                      # 未指定时：默认选项为 yes，其他选项为 no
+#	}
+#	示例：default = {                                       # 用 "default" 指定默认选项，可覆盖“第一个选项默认”的行为
+#		示例：name = option_token
+#		示例：text = "TEXT_KEY_FOR_OPTION_NAME"
+#		...
+#	}
+# }
+
+nukes_kiled_population = { 
+	name = "RULE_NUKES_KILED_POPULATION"
+	group = "RULE_REALISTIC_NUKES"
+	icon = "GFX_game_rule_population_game_rule"
+	option = {
+		name = "RULE_NUKES_KILED_POPULATION_CLOTURE"
+		text = RULE_OPTION_NUKES_KILED_POPULATION_CLOTURE
+		desc = "RULE_NUKES_KILED_POPULATION_CLOTURE_DESC"
+		allow_achievements = yes
+	}
+	default = {
+		name = "RULE_NUKES_KILED_POPULATION_OPEN"
+		text = RULE_OPTION_NUKES_KILED_POPULATION_OPEN
+		desc = "RULE_NUKES_KILED_POPULATION_OPEN_DESC"
+	}
+}
+nuke_radiation_level = { 
+	name = "RULE_NUKE_RADIATION_LEVEL"
+	group = "RULE_REALISTIC_NUKES"
+	icon = "GFX_game_rule_radiation_game_rule"
+	option = {
+		name = "RULE_NUKE_RADIATION_LEVEL_CLOTURE"
+		text = RULE_OPTION_NUKE_RADIATION_LEVEL_CLOTURE
+		desc = "RULE_NUKE_RADIATION_LEVEL_CLOTURE_DESC"
+		allow_achievements = yes
+	}
+	default = {
+		name = "RULE_NUKE_RADIATION_LEVEL_OPEN"
+		text = RULE_OPTION_NUKE_RADIATION_LEVEL_OPEN
+		desc = "RULE_NUKE_RADIATION_LEVEL_OPEN_DESC"
+	}
+}
+nukes_army_damage = { 
+	name = "RULE_NUKES_ARMY_DAMAGE"
+	group = "RULE_REALISTIC_NUKES"
+	icon = "GFX_game_rule_army_damage_game_rule"
+	option = {
+		name = "RULE_NUKES_ARMY_DAMAGE_CLOTURE"
+		text = RULE_OPTION_NUKES_ARMY_DAMAGE_CLOTURE
+		desc = "RULE_NUKES_ARMY_DAMAGE_CLOTURE_DESC"
+		allow_achievements = yes
+	}
+	default = {
+		name = "RULE_NUKES_ARMY_DAMAGE_OPEN"
+		text = RULE_OPTION_NUKES_ARMY_DAMAGE_OPEN
+		desc = "RULE_NUKES_ARMY_DAMAGE_OPEN_DESC"
+	}
+}
+nukes_build_damage = { 
+	name = "RULE_NUKES_BUILD_DAMAGE"
+	group = "RULE_REALISTIC_NUKES"
+	icon = "GFX_game_rule_build_damage_game_rule"
+	option = {
+		name = "RULE_NUKES_BUILD_DAMAGE_CLOTURE"
+		TEXT = RULE_OPTION_NUKES_BUILD_DAMAGE_CLOTURE
+		DESC = "RULE_NUKES_BUILD_DAMAGE_CLOTURE_DESC"
+		allow_achievements = yes
+	}
+	default = {
+		name = "RULE_NUKES_BUILD_DAMAGE_OPEN"
+		TEXT = RULE_OPTION_NUKES_BUILD_DAMAGE_OPEN
+		DESC = "RULE_NUKES_BUILD_DAMAGE_OPEN_DESC"
+	}
+}
+nuclear_deterrence_realism = {
+	name = "RULE_NUCLEAR_DETERRENCE_REALISM"
+	group = "RULE_REALISTIC_NUKES"
+	icon = "GFX_game_rule_radiation_game_rule"
+	option = {
+		name = "RULE_NUCLEAR_DETERRENCE_REALISM_CLOTURE"
+		text = RULE_OPTION_NUCLEAR_DETERRENCE_REALISM_CLOTURE
+		desc = "RULE_NUCLEAR_DETERRENCE_REALISM_CLOTURE_DESC"
+		allow_achievements = yes
+	}
+	default = {
+		name = "RULE_NUCLEAR_DETERRENCE_REALISM_OPEN"
+		text = RULE_OPTION_NUCLEAR_DETERRENCE_REALISM_OPEN
+		desc = "RULE_NUCLEAR_DETERRENCE_REALISM_OPEN_DESC"
+	}
+}

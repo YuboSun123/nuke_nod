@@ -1,0 +1,123 @@
+# 废土重建界面的 scripted localisation。
+# 这些定义负责把州变量转换成阶段、状态和完成提示文字。
+custom_localization = {
+	name = GetWastelandRebuildStageText
+
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 1 } }
+		localization_key = wasteland_rebuild_stage_1
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 2 } }
+		localization_key = wasteland_rebuild_stage_2
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 3 } }
+		localization_key = wasteland_rebuild_stage_3
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 4 } }
+		localization_key = wasteland_rebuild_stage_4
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 5 } }
+		localization_key = wasteland_rebuild_stage_5
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 6 } }
+		localization_key = wasteland_rebuild_stage_6
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 7 } }
+		localization_key = wasteland_rebuild_stage_7
+	}
+	text = {
+		localization_key = wasteland_rebuild_stage_waiting
+	}
+}
+
+# 重建状态优先级：可完成 > 被锁定 > 暂停 > 施工中 > 等待中。
+custom_localization = {
+	name = GetWastelandRebuildStatusText
+
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_ready > 0 } }
+		localization_key = wasteland_rebuild_status_ready
+	}
+	text = {
+		trigger = { is_demilitarized_zone = yes }
+		localization_key = wasteland_rebuild_status_locked
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stop_days > 0 } }
+		localization_key = wasteland_rebuild_status_stopped
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage > 0 } }
+		localization_key = wasteland_rebuild_status_working
+	}
+	text = {
+		localization_key = wasteland_rebuild_status_waiting
+	}
+}
+
+# 完成时间文本目前只区分“可立即完成”和“尚未解锁/不可完成”两类。
+custom_localization = {
+	name = GetWastelandRebuildFinishText
+
+	text = {
+		trigger = {
+			check_variable = { wasteland_rebuild_ready > 0 }
+			NOT = { is_owned_by = ROOT }
+		}
+		localization_key = wasteland_rebuild_finish_not_owner
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_ready > 0 } }
+		localization_key = wasteland_rebuild_finish_ready
+	}
+	text = {
+		localization_key = wasteland_rebuild_finish_locked
+	}
+}
+
+# 当前阶段所需资源提示。
+custom_localization = {
+	name = GetWastelandRebuildStageCostText
+
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_ready > 0 } }
+		localization_key = wasteland_rebuild_stage_cost_ready
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 1 } }
+		localization_key = wasteland_rebuild_stage_cost_1
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 2 } }
+		localization_key = wasteland_rebuild_stage_cost_2
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 3 } }
+		localization_key = wasteland_rebuild_stage_cost_3
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 4 } }
+		localization_key = wasteland_rebuild_stage_cost_4
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 5 } }
+		localization_key = wasteland_rebuild_stage_cost_5
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 6 } }
+		localization_key = wasteland_rebuild_stage_cost_6
+	}
+	text = {
+		trigger = { check_variable = { wasteland_rebuild_stage = 7 } }
+		localization_key = wasteland_rebuild_stage_cost_7
+	}
+	text = {
+		localization_key = wasteland_rebuild_stage_cost_waiting
+	}
+}

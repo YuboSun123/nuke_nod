@@ -1,0 +1,34 @@
+ # 核威慑 - Scripted Triggers
+
+ # 已处于核威慑之下：
+ # - 国家拥有“悬剑于顶”idea
+ # - 已写入有效的主要威慑来源
+ # - 主要威慑来源仍然存在且尚未投降
+is_under_nuclear_deterrence = {
+	has_idea = deterrence_state_idea
+	NOT = { check_variable = { deterrence_primary_source = 0 } }
+	var:deterrence_primary_source = {
+		exists = yes
+		has_capitulated = no
+	}
+}
+
+ # 强核威慑：
+ # - 满足“已处于核威慑之下”
+ # - 主要威慑来源对本国首都形成 4000km 强覆盖并拥有核弹头
+is_under_strong_nuclear_deterrence = {
+	is_under_nuclear_deterrence = yes
+	check_variable = { var = deterrence_primary_source_is_strong value = 1 compare = equals }
+}
+
+ # 主要核威慑：
+ # - 满足“已处于核威慑之下”
+ # - 来源要么属于强核威慑，要么本身是 major
+ # 用于触发更偏向“核突破/追赶”的 AI 反应
+is_under_major_nuclear_deterrence = {
+	is_under_nuclear_deterrence = yes
+	OR = {
+		is_under_strong_nuclear_deterrence = yes
+		var:deterrence_primary_source = { is_major = yes }
+	}
+}

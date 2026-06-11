@@ -1,0 +1,321 @@
+# 核灾难与战争伤亡统计的 scripted localisation。
+# 每个定义都根据显示变量的数量级切换文本键，分别输出普通数值、K、M、KM 等格式。
+# 带 selected_casualty_country 的定义读取事件目标国家变量；global.* 则直接读取全局变量。
+custom_localization = {
+	name = GetGlobalPeopleDeathByNukesText
+
+	text = {
+		trigger = {
+			check_variable = { global.people_death_by_nukes_display > 1000000000 }
+		}
+		localization_key = global_people_death_by_nukes_text_km
+	}
+	text = {
+		trigger = {
+			check_variable = { global.people_death_by_nukes_display > 1000000 }
+		}
+		localization_key = global_people_death_by_nukes_text_m
+	}
+	text = {
+		trigger = {
+			check_variable = { global.people_death_by_nukes_display > 1000 }
+		}
+		localization_key = global_people_death_by_nukes_text_k
+	}
+	text = {
+		localization_key = global_people_death_by_nukes_text
+	}
+}
+
+# 全局核辐射附带死亡人数显示。
+custom_localization = {
+	name = GetGlobalPeopleDeathByRadiationText
+
+	text = {
+		trigger = {
+			check_variable = { global.people_death_by_nukes_radiation_display > 1000000000 }
+		}
+		localization_key = global_people_death_by_nukes_radiation_text_km
+	}
+	text = {
+		trigger = {
+			check_variable = { global.people_death_by_nukes_radiation_display > 1000000 }
+		}
+		localization_key = global_people_death_by_nukes_radiation_text_m
+	}
+	text = {
+		trigger = {
+			check_variable = { global.people_death_by_nukes_radiation_display > 1000 }
+		}
+		localization_key = global_people_death_by_nukes_radiation_text_k
+	}
+	text = {
+		localization_key = global_people_death_by_nukes_radiation_text
+	}
+}
+
+# 全局战争死亡人数显示。
+custom_localization = {
+	name = GetGlobalPeopleDeathByWarText
+
+	text = {
+		trigger = {
+			check_variable = { global.people_death_by_war_display > 1000000000 }
+		}
+		localization_key = global_people_death_by_war_text_km
+	}
+	text = {
+		trigger = {
+			check_variable = { global.people_death_by_war_display > 1000000 }
+		}
+		localization_key = global_people_death_by_war_text_m
+	}
+	text = {
+		trigger = {
+			check_variable = { global.people_death_by_war_display > 1000 }
+		}
+		localization_key = global_people_death_by_war_text_k
+	}
+	text = {
+		localization_key = global_people_death_by_war_text
+	}
+}
+
+# 全局军事镇压致死人数显示。
+custom_localization = {
+	name = GetGlobalDiedInMilCrackdownsText
+
+	text = {
+		trigger = {
+			check_variable = { global.died_in_mil_crackdowns_display > 1000000000 }
+		}
+		localization_key = global_died_in_mil_crackdowns_text_km
+	}
+	text = {
+		trigger = {
+			check_variable = { global.died_in_mil_crackdowns_display > 1000000 }
+		}
+		localization_key = global_died_in_mil_crackdowns_text_m
+	}
+	text = {
+		trigger = {
+			check_variable = { global.died_in_mil_crackdowns_display > 1000 }
+		}
+		localization_key = global_died_in_mil_crackdowns_text_k
+	}
+	text = {
+		localization_key = global_died_in_mil_crackdowns_text
+	}
+}
+
+# 全局辐射杀伤的部队人数显示。
+custom_localization = {
+	name = GetGlobalUnitsKilledByRadiationText
+
+	text = {
+		trigger = {
+			check_variable = { global.units_killed_by_radiation_display > 1000000000 }
+		}
+		localization_key = global_units_killed_by_radiation_text_km
+	}
+	text = {
+		trigger = {
+			check_variable = { global.units_killed_by_radiation_display > 1000000 }
+		}
+		localization_key = global_units_killed_by_radiation_text_m
+	}
+	text = {
+		trigger = {
+			check_variable = { global.units_killed_by_radiation_display > 1000 }
+		}
+		localization_key = global_units_killed_by_radiation_text_k
+	}
+	text = {
+		localization_key = global_units_killed_by_radiation_text
+	}
+}
+
+# 全局核爆直接杀伤的部队人数显示。
+custom_localization = {
+	name = GetGlobalUnitsKilledByNukesText
+	
+	text = {
+		trigger = {
+			check_variable = { global.units_killed_by_nukes_display > 1000000000 }
+		}
+		localization_key = global_units_killed_by_nukes_text_km
+	}
+	text = {
+		trigger = {
+			check_variable = { global.units_killed_by_nukes_display > 1000000 }
+		}
+		localization_key = global_units_killed_by_nukes_text_m
+	}
+	text = {
+		trigger = {
+			check_variable = { global.units_killed_by_nukes_display > 1000 }
+		}
+		localization_key = global_units_killed_by_nukes_text_k
+	}
+	text = {
+		localization_key = global_units_killed_by_nukes_text
+	}
+}
+
+# 全局常规战争造成的部队损失显示。
+custom_localization = {
+	name = GetGlobalUnitsKilledByWarText
+
+	text = {
+		trigger = {
+			check_variable = { global.units_killed_by_war_display > 1000000000 }
+		}
+		localization_key = global_units_killed_by_war_text_km
+	}
+	text = {
+		trigger = {
+			check_variable = { global.units_killed_by_war_display > 1000000 }
+		}
+		localization_key = global_units_killed_by_war_text_m
+	}
+	text = {
+		trigger = {
+			check_variable = { global.units_killed_by_war_display > 1000 }
+		}
+		localization_key = global_units_killed_by_war_text_k
+	}
+	text = {
+		localization_key = global_units_killed_by_war_text
+	}
+}
+
+# 选中国家的总伤亡、军队伤亡、平民伤亡显示。
+custom_localization = {
+	name = GetTotalCasualtiesFormatted
+
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { total_casualties > 1000000000 }
+			}
+		}
+		localization_key = total_casualties_text_km
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { total_casualties > 1000000 }
+			}
+		}
+		localization_key = total_casualties_text_m
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { total_casualties > 1000 }
+			}
+		}
+		localization_key = total_casualties_text_k
+	}
+	text = {
+		localization_key = total_casualties_text
+	}
+}
+
+custom_localization = {
+	name = GetMilitaryCasualtiesFormatted
+
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { mil_casualties > 1000000000 }
+			}
+		}
+		localization_key = mil_casualties_text_km
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { mil_casualties > 1000000 }
+			}
+		}
+		localization_key = mil_casualties_text_m
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { mil_casualties > 1000 }
+			}
+		}
+		localization_key = mil_casualties_text_k
+	}
+	text = {
+		localization_key = mil_casualties_text
+	}
+}
+
+custom_localization = {
+	name = GetCivilianCasualtiesFormatted
+
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { civ_casualties > 1000000000 }
+			}
+		}
+		localization_key = civ_casualties_text_km
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { civ_casualties > 1000000 }
+			}
+		}
+		localization_key = civ_casualties_text_m
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { civ_casualties > 1000 }
+			}
+		}
+		localization_key = civ_casualties_text_k
+	}
+	text = {
+		localization_key = civ_casualties_text
+	}
+}
+
+# 选中国家在镇压叛乱中造成的死亡人数显示。
+custom_localization = {
+	name = GetSuppressRebelsFormatted
+	
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { suppress_the_rebels > 1000000000 }
+			}
+		}
+		localization_key = suppress_rebels_text_km
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { suppress_the_rebels > 1000000 }
+			}
+		}
+		localization_key = suppress_rebels_text_m
+	}
+	text = {
+		trigger = {
+			event_target:selected_casualty_country = {
+				check_variable = { suppress_the_rebels > 1000 }
+			}
+		}
+		localization_key = suppress_rebels_text_k
+	}
+	text = {
+		localization_key = suppress_rebels_text
+	}
+}
+

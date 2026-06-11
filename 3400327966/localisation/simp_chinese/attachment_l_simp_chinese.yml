@@ -1,0 +1,163 @@
+﻿l_simp_chinese:
+#   游戏规则
+ RULE_REALISTIC_NUKES:0 "核武器伤害开关"
+
+ RULE_NUKES_KILED_POPULATION:0 "人口伤害"
+ RULE_OPTION_NUKES_KILED_POPULATION_CLOTURE:0 "关闭"
+ RULE_NUKES_KILED_POPULATION_CLOTURE_DESC:0 "如原版那般"
+ RULE_OPTION_NUKES_KILED_POPULATION_OPEN:0 "开启"
+ RULE_NUKES_KILED_POPULATION_OPEN_DESC:0 "核爆能杀死地区人口(相对于核弹，热核弹的杀伤更强)"
+
+ RULE_NUKE_RADIATION_LEVEL:0 "辐射伤害"
+ RULE_OPTION_NUKE_RADIATION_LEVEL_CLOTURE:0 "关闭"
+ RULE_NUKE_RADIATION_LEVEL_CLOTURE_DESC:0 "如原版那般"
+ RULE_OPTION_NUKE_RADIATION_LEVEL_OPEN:0 "开启"
+ RULE_NUKE_RADIATION_LEVEL_OPEN_DESC:0 "核爆能产生辐射,同时辐射对州内的人口和军队造成持续伤害(相对于核弹，热核弹产生的辐射量更多，相邻省也会被波及)"
+
+ RULE_NUKES_ARMY_DAMAGE:0 "军队伤害"
+ RULE_OPTION_NUKES_ARMY_DAMAGE_CLOTURE:0 "关闭"
+ RULE_NUKES_ARMY_DAMAGE_CLOTURE_DESC:0 "如原版那般"
+ RULE_OPTION_NUKES_ARMY_DAMAGE_OPEN:0 "开启"
+ RULE_NUKES_ARMY_DAMAGE_OPEN_DESC:0 "核爆能摧毁省份内所有部队(相对于核弹，热核弹的威力更大，相邻省的军队也会被波及)"
+
+ RULE_NUKES_BUILD_DAMAGE:0 "建筑伤害"
+ RULE_OPTION_NUKES_BUILD_DAMAGE_CLOTURE:0 "关闭"
+ RULE_NUKES_BUILD_DAMAGE_CLOTURE_DESC:0 "如原版那般"
+ RULE_OPTION_NUKES_BUILD_DAMAGE_OPEN:0 "开启"
+ RULE_NUKES_BUILD_DAMAGE_OPEN_DESC:0 "核爆能摧毁省份内现有建筑(相对于核弹，热核弹的威力更大，相邻省的建筑也会被波及)"
+
+ RULE_NUCLEAR_DETERRENCE_REALISM:0 "现实威慑"
+ RULE_OPTION_NUCLEAR_DETERRENCE_REALISM_CLOTURE:0 "关闭"
+ RULE_NUCLEAR_DETERRENCE_REALISM_CLOTURE_DESC:0 "不启用核威慑现实的 AI 行为变化。"
+ RULE_OPTION_NUCLEAR_DETERRENCE_REALISM_OPEN:0 "开启"
+ RULE_NUCLEAR_DETERRENCE_REALISM_OPEN_DESC:0 "启用核威慑现实：被威慑的 AI 国家会压低主动开战欲望，对主要威慑来源采取谨慎与缓和姿态，同时优先修建防空、雷达与要塞；若面临强威慑或列强核阴影，还会追赶火箭、核反应堆与核导弹能力。"
+
+#   决议
+ Strategic_Nuke_Operation:0 " §L国防的延伸与保障§! "
+ Strategic_Nuke_Operation_desc:0 "将军请牢记: \n和平是建造工厂之时,战争只是消耗它们之日. 我们的每一项决策,都将决定国家的命运.没有强大的工业基础,再英勇的士兵也会弹尽粮绝" 
+
+ Make_Public_Nuke:0 "向世界公布核成果"
+ Make_Public_Nuke_desc:0 "指挥官,记住奥本海默的警告：我成了死亡,世界的毁灭者,但在这棋盘上 —— 您才是执棋者"
+
+ Arms_Industry:0 "§G兵器研发制造署§!"
+ Arms_Industry_desc:0 "如今这乱糟糟的国际局势，咱要想有话语权，有威慑力，拳头硬才是硬道理，对付那些国际上的流氓国家，跟对付街头混混是一个道理"
+ Arms_Industry_0:0 "§R暂停兵器署§!"
+ new_high_technology:0 "§C新型工业化§!"
+ The_Beacon_Project:0 "§H灯塔计划§!"
+ The_Beacon_Project_desc:0 "这是一场没有硝烟的战争，而我们，就是这场战争的先锋,让每一把剑、每一门炮、每一架战机都成为时代的见证"
+ Weapons_Production_Lines:0 "§H织工计划§!"
+ Weapons_Production_Lines_desc:0 "绝密且雄心勃勃的战略行动，其核心旨在隐秘且高效地研发并生产一系列具备革命性的先进武器。此计划的推进，是为了确保在那风云变幻、硝烟四起的全球冲突中，能够稳占军事优势的制高点"
+
+ Planning_Department:0 "§G科学技术研究部§!"
+ Planning_Department_desc:0 "国家的科技发展至关重要。面对瞬息万变的战场形势和强大的对手，科技技术的发展无疑是一项极具挑战性的任务。然而，我们深知，只有不断推进科技进步，才能在激烈的战争中立于不败之地"
+ Planning_Department_0:0 "§R停止研究部§!"
+ technology_laboratory:0 "§C科学实验室§!"
+ Blueprint_Program:0 "§H蓝图计划§!"
+ Blueprint_Program_desc:0 "近代世界发展进程已清晰证明，一国一族之科技实力，从根本上决定了其命运走向"
+
+ Army_Staff:0 "§G陆军总参中心§!"
+ Army_Staff_desc:0 "除非连最普通的士兵都清楚他正在保卫国家，否则任何防御工事、火炮或者外国援助都毫无意义"
+ Army_Staff_0:0 "§R关闭总参中心§!"
+ quality_of_soldiers:0 "§C单兵素质§!"
+ All_military_drill:0 "§H联合演习§!"
+ All_military_drill_desc:0 "你们的任务并不轻松.你们的敌人训练有素、装备精良、身经百战.他们会顽强地战斗"
+
+ Radar_Detection:0 "§G预警雷达 — 开§!"
+ Radar_Detection_desc:0 "所有电台,这里是0,请保持无线电静默。完毕"
+ Radar_Detection_0:0 "§R预警雷达 — 关§!"
+ radar_warning:0 "§C预警雷达§!"
+ Radar_Detection_on:0 "§H预警雷达探测§!" 
+ Radar_Detection_on_desc:0 "无论这个策略多么美妙，你都应偶尔看看结果"
+
+ satellite_reconnaissance:0 "§G侦察卫星 — 开§!"
+ satellite_reconnaissance_desc:0 "军事领域卫星的出现，它让我们在现代化战争中大显身手"
+ satellite_reconnaissance_0:0 "§R侦察卫星 — 关§!"
+ military_satellite:0 "§C轨道卫星§!"
+ satellite_on:0 "§H轨道卫星侦测§!"
+ satellite_on_desc:0 "我问你们，你们想要一场全面战争吗？如果有必要，你们想不想打一场比我们所能想象的更全面、更彻底的战争？"
+
+# 难民/迁移数字格式化
+
+ state_refugee_pool_text_k:0 "[?state_refugee_pool_k|1Y]K"
+ state_refugee_pool_text_m:0 "[?state_refugee_pool_m|1Y]M"
+ state_refugee_pool_text_km:0 "[?state_refugee_pool_km|1Y]KM"
+
+ state_refugee_weekly_delta_text_k:0 "[?state_refugee_weekly_pop_delta_k|+1]K"
+ state_refugee_weekly_delta_text_m:0 "[?state_refugee_weekly_pop_delta_m|+1]M"
+ state_refugee_weekly_delta_text_km:0 "[?state_refugee_weekly_pop_delta_km|+1]KM"
+
+ state_refugee_ratio_text:0 "[?state_refugee_ratio_pct|2Y]%"
+ state_refugee_country_ratio_text:0 "[?state_refugee_country_ratio_pct|2Y]%"
+ state_refugee_resettled_ratio_text:0 "[?state_refugee_resettled_ratio_pct|1Y]%"
+
+ country_refugee_pool_text_k:0 "[?event_target:selected_casualty_country.country_refugee_pool_k|2R]K"
+ country_refugee_pool_text_m:0 "[?event_target:selected_casualty_country.country_refugee_pool_m|2R]M"
+ country_refugee_pool_text_km:0 "[?event_target:selected_casualty_country.country_refugee_pool_km|2R]KM"
+ country_refugee_pool_text_people:0 "[?event_target:selected_casualty_country.country_refugee_pool_people|0R]"
+
+ country_refugee_border_net_weekly_text_k:0 "[?event_target:selected_casualty_country.country_refugee_border_net_weekly_k|+2]K"
+ country_refugee_border_net_weekly_text_m:0 "[?event_target:selected_casualty_country.country_refugee_border_net_weekly_m|+2]M"
+ country_refugee_border_net_weekly_text_km:0 "[?event_target:selected_casualty_country.country_refugee_border_net_weekly_km|+2]KM"
+ country_refugee_border_net_weekly_text_people:0 "[?event_target:selected_casualty_country.country_refugee_border_net_weekly_people|+0]"
+
+ global_refugee_pool_text_k:0 "[?global.refugee_pool_k|2R]K"
+ global_refugee_pool_text_m:0 "[?global.refugee_pool_m|2R]M"
+ global_refugee_pool_text_km:0 "[?global.refugee_pool_km|2R]KM"
+ global_refugee_pool_text_people:0 "[?global.refugee_pool_people|0R]"
+
+#   伤亡数字格式化
+
+ global_units_killed_by_nukes_text:0 "[?global.units_killed_by_nukes_display|0R]"
+ global_units_killed_by_nukes_text_k:0 "[?global.units_killed_by_nukes_k|2R]K"
+ global_units_killed_by_nukes_text_m:0 "[?global.units_killed_by_nukes_m|2R]M"
+ global_units_killed_by_nukes_text_km:0 "[?global.units_killed_by_nukes_km|2R]KM"
+
+ global_units_killed_by_radiation_text:0 "[?global.units_killed_by_radiation_display|0R]"
+ global_units_killed_by_radiation_text_k:0 "[?global.units_killed_by_radiation_k|2R]K"
+ global_units_killed_by_radiation_text_m:0 "[?global.units_killed_by_radiation_m|2R]M"
+ global_units_killed_by_radiation_text_km:0 "[?global.units_killed_by_radiation_km|2R]KM"
+
+ global_units_killed_by_war_text:0 "[?global.units_killed_by_war_display|0R]"
+ global_units_killed_by_war_text_k:0 "[?global.units_killed_by_war_k|2R]K"
+ global_units_killed_by_war_text_m:0 "[?global.units_killed_by_war_m|2R]M"
+ global_units_killed_by_war_text_km:0 "[?global.units_killed_by_war_km|2R]KM"
+
+ global_people_death_by_nukes_text:0 "[?global.people_death_by_nukes_display|0R]"
+ global_people_death_by_nukes_text_k:0 "[?global.people_death_by_nukes_k|2R]K"
+ global_people_death_by_nukes_text_m:0 "[?global.people_death_by_nukes_m|2R]M"
+ global_people_death_by_nukes_text_km:0 "[?global.people_death_by_nukes_km|2R]KM"
+
+ global_people_death_by_nukes_radiation_text:0 "[?global.people_death_by_nukes_radiation_display|0R]"
+ global_people_death_by_nukes_radiation_text_k:0 "[?global.people_death_by_nukes_radiation_k|2R]K"
+ global_people_death_by_nukes_radiation_text_m:0 "[?global.people_death_by_nukes_radiation_m|2R]M"
+ global_people_death_by_nukes_radiation_text_km:0 "[?global.people_death_by_nukes_radiation_km|2R]KM"
+
+ global_people_death_by_war_text:0 "[?global.people_death_by_war_display|0R]"
+ global_people_death_by_war_text_k:0 "[?global.people_death_by_war_k|2R]K"
+ global_people_death_by_war_text_m:0 "[?global.people_death_by_war_m|2R]M"
+ global_people_death_by_war_text_km:0 "[?global.people_death_by_war_km|2R]KM"
+
+ total_casualties_text:0 "[?event_target:selected_casualty_country.total_casualties|0R]"
+ total_casualties_text_k:0 "[?event_target:selected_casualty_country.total_casualties_k|2R]K"
+ total_casualties_text_m:0 "[?event_target:selected_casualty_country.total_casualties_m|2R]M"
+ total_casualties_text_km:0 "[?event_target:selected_casualty_country.total_casualties_km|2R]KM"
+
+ mil_casualties_text:0 "[?event_target:selected_casualty_country.mil_casualties|0R]"
+ mil_casualties_text_k:0 "[?event_target:selected_casualty_country.mil_casualties_k|2R]K"
+ mil_casualties_text_m:0 "[?event_target:selected_casualty_country.mil_casualties_m|2R]M"
+ mil_casualties_text_km:0 "[?event_target:selected_casualty_country.mil_casualties_km|2R]KM"
+
+ civ_casualties_text:0 "[?event_target:selected_casualty_country.civ_casualties|0R]"
+ civ_casualties_text_k:0 "[?event_target:selected_casualty_country.civ_casualties_k|2R]K"
+ civ_casualties_text_m:0 "[?event_target:selected_casualty_country.civ_casualties_m|2R]M"
+ civ_casualties_text_km:0 "[?event_target:selected_casualty_country.civ_casualties_km|2R]KM"
+
+ global_died_in_mil_crackdowns_text:0 "[?global.died_in_mil_crackdowns_display|0R]"
+ global_died_in_mil_crackdowns_text_k:0 "[?global.died_in_mil_crackdowns_k|2R]K"
+ global_died_in_mil_crackdowns_text_m:0 "[?global.died_in_mil_crackdowns_m|2R]M"
+ global_died_in_mil_crackdowns_text_km:0 "[?global.died_in_mil_crackdowns_km|2R]KM"
+
+ suppress_rebels_text:0 "[?event_target:selected_casualty_country.suppress_the_rebels|0R]"
+ suppress_rebels_text_k:0 "[?event_target:selected_casualty_country.suppress_the_rebels_k|2R]K"
+ suppress_rebels_text_m:0 "[?event_target:selected_casualty_country.suppress_the_rebels_m|2R]M"
+ suppress_rebels_text_km:0 "[?event_target:selected_casualty_country.suppress_the_rebels_km|2R]KM"

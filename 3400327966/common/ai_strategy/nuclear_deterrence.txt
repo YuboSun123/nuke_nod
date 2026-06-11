@@ -1,0 +1,177 @@
+ #-------------------------------
+ # 核威慑 AI 行为
+ #-------------------------------
+ # 设计目标：
+ # - 被核覆盖的 AI 国家更谨慎地处理对外战争与对主要威慑来源的关系
+ # - 优先进行本土硬化，减少首都与核心工业区遭核打击后的脆弱性
+ # - 面对强威慑或列强核阴影时，逐步走向火箭、反应堆与导弹报复能力建设
+
+ # 外交谨慎：
+ # - 被威慑且尚未与主要威慑来源开战时生效
+ # - 降低主动开战倾向
+ # - 对主要威慑来源减少征服欲望，并略微提高友好权重
+nuclear_deterrence_cautious_diplomacy = {
+	allowed = {
+		is_ai = yes
+	}
+	enable = {
+		has_game_rule = {
+			rule = nuclear_deterrence_realism
+			option = RULE_NUCLEAR_DETERRENCE_REALISM_OPEN
+		}
+		is_under_nuclear_deterrence = yes
+		NOT = {
+			var:deterrence_primary_source = {
+				has_war_with = PREV
+			}
+		}
+	}
+	abort_when_not_enabled = yes
+
+	ai_strategy = {
+		type = avoid_starting_wars
+		value = -120
+	}
+	ai_strategy = {
+		type = conquer
+		id = var:deterrence_primary_source
+		value = -250
+	}
+	ai_strategy = {
+		type = befriend
+		id = var:deterrence_primary_source
+		value = 90
+	}
+}
+
+ # 本土硬化：
+ # - 只要仍在核威慑范围内即生效
+ # - 提高防空、雷达、陆上要塞的建设与最低目标值
+ # - 表现为 AI 更愿意优先补强国土防护，而不是一味扩张工业
+nuclear_deterrence_homeland_hardening = {
+	allowed = {
+		is_ai = yes
+	}
+	enable = {
+		has_game_rule = {
+			rule = nuclear_deterrence_realism
+			option = RULE_NUCLEAR_DETERRENCE_REALISM_OPEN
+		}
+		is_under_nuclear_deterrence = yes
+	}
+	abort_when_not_enabled = yes
+
+	ai_strategy = {
+		type = build_building
+		id = anti_air_building
+		value = 260
+	}
+	ai_strategy = {
+		type = build_building
+		id = radar_station
+		value = 160
+	}
+	ai_strategy = {
+		type = build_building
+		id = bunker
+		value = 120
+	}
+	ai_strategy = {
+		type = building_target
+		id = anti_air_building
+		value = 4
+	}
+	ai_strategy = {
+		type = building_target
+		id = radar_station
+		value = 2
+	}
+	ai_strategy = {
+		type = building_target
+		id = bunker
+		value = 2
+	}
+}
+
+ # 核突破反应：
+ # - 面对强威慑，或主要威慑来源为 major 时生效
+ # - 倾向建设核反应堆与火箭基地
+ # - 并强制优先研究实验火箭，作为后续导弹/核投送能力的基础
+nuclear_deterrence_breakout_response = {
+	allowed = {
+		is_ai = yes
+	}
+	enable = {
+		has_game_rule = {
+			rule = nuclear_deterrence_realism
+			option = RULE_NUCLEAR_DETERRENCE_REALISM_OPEN
+		}
+		is_under_major_nuclear_deterrence = yes
+	}
+	abort_when_not_enabled = yes
+
+	ai_strategy = {
+		type = build_building
+		id = nuclear_reactor
+		value = 180
+	}
+	ai_strategy = {
+		type = build_building
+		id = rocket_site
+		value = 170
+	}
+	ai_strategy = {
+		type = building_target
+		id = nuclear_reactor
+		value = 1
+	}
+	ai_strategy = {
+		type = building_target
+		id = rocket_site
+		value = 1
+	}
+	ai_strategy = {
+		type = research_tech
+		id = experimental_rockets
+		value = 100
+	}
+}
+
+ # 导弹列装：
+ # - 仅在强核威慑下启用
+ # - 且国家已经具备飞弹、弹道导弹或核弹头相关特殊项目之一
+ # - 通过最低军工产线保证 AI 不会“解锁了但完全不造”
+nuclear_deterrence_missile_arming = {
+	allowed = {
+		is_ai = yes
+	}
+	enable = {
+		has_game_rule = {
+			rule = nuclear_deterrence_realism
+			option = RULE_NUCLEAR_DETERRENCE_REALISM_OPEN
+		}
+		is_under_strong_nuclear_deterrence = yes
+		OR = {
+			is_special_project_completed = sp:sp_rockets_flying_bomb
+			is_special_project_completed = sp:sp_rockets_ballistic_missile
+			is_special_project_completed = sp:sp_nuclear_warheads
+		}
+	}
+	abort_when_not_enabled = yes
+
+	ai_strategy = {
+		type = equipment_production_min_factories_archetype
+		id = guided_missile_equipment
+		value = 1
+	}
+	ai_strategy = {
+		type = equipment_production_min_factories_archetype
+		id = ballistic_missile_equipment
+		value = 1
+	}
+	ai_strategy = {
+		type = equipment_production_min_factories_archetype
+		id = nuclear_missile_equipment
+		value = 1
+	}
+}

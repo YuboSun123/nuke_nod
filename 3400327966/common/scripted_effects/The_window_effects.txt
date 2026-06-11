@@ -1,0 +1,137 @@
+
+casualty_sort_total_refresh = {
+	# 始终将该刷新视为按总伤亡（降序）排序
+	set_country_flag = casualty_sort_total_descending
+
+	# 每次刷新重建数组，保证 UI 结果稳定且可复现
+	clear_array = global.national_statistical_data
+	every_country = {
+		add_to_array = { global.national_statistical_data = THIS.id }
+	} 
+
+	set_temp_variable = { count = global.national_statistical_data^num }
+	if = {
+		limit = { check_variable = { count > 1 } }
+		set_temp_variable = { len = count }
+		subtract_from_temp_variable = { len = 1 }
+		set_temp_variable = { sorted = 0 }
+
+		# 这里用的是冒泡排序：若本轮没有交换，则 sorted 保持 1 并结束循环。
+		while_loop_effect = { 
+			limit = { 
+				NOT = { check_variable = { sorted = 1 } }
+			}
+			set_temp_variable = { sorted = 1 }
+
+			for_loop_effect = {
+				start = 0
+				end = len
+				value = v
+				
+				set_temp_variable = { w = v }
+				add_to_temp_variable = { w = 1 }
+				
+				if = {
+					limit = {
+						var:global.national_statistical_data^v = {
+							set_temp_variable = { global.temp_a = total_casualties_k }
+						}
+						var:global.national_statistical_data^w = {
+							set_temp_variable = { global.temp_b = total_casualties_k }
+						}
+						check_variable = { global.temp_a < global.temp_b }
+					}
+					set_temp_variable = { sorted = 0 }
+					
+					set_temp_variable = { global.sort_a = global.national_statistical_data^v }
+					set_variable = { global.national_statistical_data^v = global.national_statistical_data^w }
+					set_variable = { global.national_statistical_data^w = global.sort_a }
+				}
+			}
+		}
+	}
+}
+
+state_list_refresh = {
+	# 为州统计窗口重建州 ID 列表；若已选中国家，则只收集该国当前控制州。
+	clear_array = global.state_statistical_data
+	if = {
+		limit = {
+			event_target:selected_casualty_country = { always = yes }
+		}
+		every_state = {
+			limit = {
+				is_controlled_by = event_target:selected_casualty_country
+			}
+			add_to_array = { global.state_statistical_data = THIS.id }
+		}
+	}
+	else = {
+		every_state = {
+			limit = {
+				is_controlled_by = ROOT
+			}
+			add_to_array = { global.state_statistical_data = THIS.id }
+		}
+	}
+}
+
+wasteland_state_list_refresh = {
+	# 单独收集废土州列表，供废土相关窗口/按钮读取。
+	clear_array = global.wasteland_state_list
+	every_state = {
+		limit = {
+			OR = {
+				has_state_flag = nuke_repair_wasteland_state
+				has_state_category = nuke_repair_wasteland
+			}
+		}
+		add_to_array = { global.wasteland_state_list = THIS.id }
+	}
+}
+#按难民降序刷新州列表
+sort_homeless_desc_refresh = {
+	# 将州列表按无家可归人数（州变量 state_refugee_pool_k，单位：K）降序排序
+	# 说明：该效果只排序 global.state_statistical_data，不负责收集列表
+	set_temp_variable = { count = global.state_statistical_data^num }
+	if = {
+		limit = { check_variable = { count > 1 } }
+		set_temp_variable = { len = count }
+		subtract_from_temp_variable = { len = 1 }
+		set_temp_variable = { sorted = 0 }
+
+		# 排序：比较相邻两个州的难民池，较大的往前交换。
+		while_loop_effect = {
+			limit = {
+				NOT = { check_variable = { sorted = 1 } }
+			}
+			set_temp_variable = { sorted = 1 }
+
+			for_loop_effect = {
+				start = 0
+				end = len
+				value = v
+
+				set_temp_variable = { w = v }
+				add_to_temp_variable = { w = 1 }
+
+				if = {
+					limit = {
+						var:global.state_statistical_data^v = {
+							set_temp_variable = { global.temp_a = state_refugee_pool_k }
+						}
+						var:global.state_statistical_data^w = {
+							set_temp_variable = { global.temp_b = state_refugee_pool_k }
+						}
+						check_variable = { global.temp_a < global.temp_b }
+					}
+					set_temp_variable = { sorted = 0 }
+
+					set_temp_variable = { global.sort_a = global.state_statistical_data^v }
+					set_variable = { global.state_statistical_data^v = global.state_statistical_data^w }
+					set_variable = { global.state_statistical_data^w = global.sort_a }
+				}
+			}
+		}
+	}
+}

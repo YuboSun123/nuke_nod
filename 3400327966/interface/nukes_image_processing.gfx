@@ -1,0 +1,144 @@
+
+spriteTypes = {
+	SpriteType = { 
+		name = "GFX_defense_decision"
+		texturefile = "gfx/all_icons/defense_decision.dds" 
+	}
+	SpriteType = { 
+		name = "GFX_idea_nuclear_armed_nations"
+		texturefile = "gfx/all_icons/nuclear_armed_nations.dds"
+	}
+	SpriteType = { 
+		name = "GFX_idea_admin_collapse"
+		texturefile = "gfx/all_icons/admin_collapse.dds"
+	}
+	SpriteType = { 
+		name = "GFX_idea_a_sword_hangs_over"
+		texturefile = "gfx/all_icons/a_sword_hangs_over.dds"
+	}
+	SpriteType = { 
+		name = "GFX_idea_nuke_make"
+		texturefile = "gfx/all_icons/nuke_make.dds"
+	}
+	SpriteType = { 
+		name = "GFX_idea_air_defence_system"
+		texturefile = "gfx/all_icons/air_defence_system.dds"
+	}
+	SpriteType = { 
+		name = "GFX_idea_take_readings"
+		texturefile = "gfx/all_icons/take_readings.dds"
+	}
+	SpriteType = {
+		name = "GFX_idea_scanning"
+		texturefile = "gfx/all_icons/scanning.dds"
+	}
+	SpriteType = { 
+		name = "GFX_idea_Connecting_Satellites"
+		texturefile = "gfx/all_icons/Connecting_Satellites.dds"
+	}
+	SpriteType = { 
+		name = "GFX_idea_the_fabrication"
+		texturefile = "gfx/all_icons/the_fabrication.dds"
+	}
+	SpriteType = { 
+		name = "GFX_idea_merge_plant_missiles"
+		texturefile = "gfx/all_icons/merge_plant_missiles.dds"
+	}
+	SpriteType = { 
+		name = "GFX_idea_research"
+		texturefile = "gfx/all_icons/research.dds"
+	}
+	SpriteType = { 
+		name = "GFX_idea_blueprint"
+		texturefile = "gfx/all_icons/blueprint.dds"
+	}
+	SpriteType = { 
+		name = "GFX_idea_military_academy"
+		texturefile = "gfx/all_icons/military_academy.dds"
+	}
+	SpriteType = { 
+		name = "GFX_idea_army_training"
+		texturefile = "gfx/all_icons/army_training.dds"
+	}
+	SpriteType = {
+		name = "GFX_radiation_texticon"
+		texturefile = "gfx/all_icons/radiation_texticon.dds"
+		legacy_lazy_load = no
+	}
+	SpriteType = {
+		name = "GFX_killed_texticon"
+		texturefile = "gfx/all_icons/killed_texticon.dds"
+		legacy_lazy_load = no
+	}
+	SpriteType = {
+		name = "GFX_people_texticon"
+		texturefile = "gfx/all_icons/people_texticon.dds"
+		legacy_lazy_load = no
+	}
+	SpriteType = {
+		name = "GFX_units_texticon"
+		texturefile = "gfx/all_icons/units_texticon.dds"
+		legacy_lazy_load = no
+	}
+	SpriteType = {
+		name = "GFX_rebel_texticon"
+		texturefile = "gfx/all_icons/rebel_texticon.dds"
+		legacy_lazy_load = no
+	}
+	SpriteType = {
+		name = "GFX_crop_texticon"
+		texturefile = "gfx/all_icons/crop_texticon.dds"
+		legacy_lazy_load = no
+	}
+	spriteType = {
+		name = "GFX_bombing_state_modifier"
+		texturefile = "gfx/all_icons/bombing_state_modifier.dds"
+	}
+	spriteType = {
+		name = "GFX_WAR_icon"
+		texturefile = "gfx/all_icons/WAR_icon.dds"
+	}
+	spriteType = {
+		name = "GFX_STAT_icon"
+		texturefile = "gfx/all_icons/STAT_icon.dds"
+	}
+	spriteType = {
+		name = "GFX_modifiers_radiation_state_modifier"
+		texturefile = "gfx/all_icons/modifiers_radiation_state_modifier.dds"
+	}
+	spriteType = {
+		name = "GFX_nuclear_bomba"
+		texturefile = "gfx/all_icons/nuclear_bomba.dds"
+	}
+	spriteType = {
+		name = "GFX_thermonuclear_bomba"
+		texturefile = "gfx/all_icons/thermonuclear_bomba.dds"
+	}
+	spriteType = {
+		name = "GFX_modifiers_radiation"
+		texturefile = "gfx/all_icons/modifiers_radiation.dds"
+	}
+	spriteType = {
+		name = "GFX_modifiers_hot_radiation"
+		texturefile = "gfx/all_icons/modifiers_hot_radiation.dds"
+	}
+	
+
+	# 游戏规则
+	SpriteType = {
+		name = "GFX_game_rule_radiation_game_rule"
+		texturefile = "gfx/game_rules/radiation_game_rule.dds"
+	}
+	SpriteType = {
+		name = "GFX_game_rule_army_damage_game_rule"
+		texturefile = "gfx/game_rules/army_damage_game_rule.dds"
+	}
+	SpriteType = {
+		name = "GFX_game_rule_population_game_rule"
+		texturefile = "gfx/game_rules/population_game_rule.dds"
+	}
+	SpriteType = {
+		name = "GFX_game_rule_build_damage_game_rule"
+		texturefile = "gfx/game_rules/build_damage_game_rule.dds"
+	}
+}

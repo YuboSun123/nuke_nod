@@ -1,0 +1,114 @@
+﻿l_simp_chinese:
+#   地图模式
+ MAPMODE_NUKE_REPAIR_RADIATION_ANARCHY_MAP_MODE_NAME:0 "辐射"
+ MAPMODE_NUKE_REPAIR_RADIATION_ANARCHY_MAP_MODE:0 "§H辐射§!地图模式"
+ MAPMODE_NUKE_REPAIR_RADIATION_ANARCHY_MAP_MODE_DESCRIPTION:0 "显示地区当前辐射量级"
+ nuke_repair_radiation_anarchy_map_mode_tooltip:0 "§H[From.GetName]§!的£GFX_radiation_texticon辐射量级 §R[GetNukeRepairRadiationLevelCategory]§!"
+ nuke_repair_radiation_anarchy_map_mode_tooltip_delayed:0 "显示所有地区的辐射热力图"
+ nuke_repair_radiation_level_none:0 "§G-§!"
+ nuke_repair_radiation_level_low:0 "§L低§!"
+ nuke_repair_radiation_level_medium:0 "§H中§!"
+ nuke_repair_radiation_level_high:0 "§R高§!"
+
+ nuke_repair_wasteland:0 "核废土"
+ STATE_CATEGORY_nuke_repair_wasteland:0 "$nuke_repair_wasteland$"
+#   理念
+ nuclear_state_idea:0 "核武之邦"
+ nuclear_state_idea_desc:0 "• 打击范围: §G[?ROOT.max_deterrence_range|0]§! km\n• 覆盖国家: §G[?ROOT.deterrence_countries_in_range_count|0]§! 个\n• $nuclear_bomb$: §G[?ROOT.num_of_nukes]§! 颗\n• $rocket_site$: §G[?total_constructed_rocket_site]§! 座\n• $nuclear_missile_equipment_1$: §G[?ROOT.num_equipment@nuclear_missile_equipment_1]§! 枚\n• $nuclear_missile_equipment_2$: §G[?ROOT.num_equipment@nuclear_missile_equipment_2]§! 枚\n\n当§H[ROOT.GetName]§!掌握可覆盖洲际射程的核打击力量时,其外交政策便拥有了撬动国际秩序的杠杆"
+
+ nuke_repair_admin_collapse_idea:0 "行政崩溃"
+ nuke_repair_admin_collapse_idea_desc:0 "首都遭受核毁灭性打击后，中央机关一度瘫痪，通讯与后勤体系支离破碎，大量官员与平民恐慌外逃。直到临时首都与新指挥体系稳定之前，国家将陷入短暂的混乱。"
+
+ deterrence_state_idea:0 "悬剑于顶"
+ deterrence_state_idea_desc:0 "• 威慑来源: [?ROOT.deterrence_primary_source.GetFlag] §Y[?ROOT.deterrence_primary_source.GetName]§!\n\n§H[ROOT.GetFlag][ROOT.GetName]§!首都所在地区§H[ROOT.capital.GetName]§!时刻面临着核武器的威胁,随时可能遭受毁灭性的打击,这种朝不保夕的处境使其国内民众人心惶惶,现任总统§H[ROOT.GetLeader]§!必须小心处理外交与国防事务。"
+
+#   动态修正
+ fallout_atomic: "核埃之地"
+ fallout_thermonuclear: "核烬之地"
+ radiation_state_modifier: "核辐射"
+ thermo_radiation_state_modifier: "热核辐射"
+ neighbor_radiation_state_modifier: "核辐射"
+ bombing_for_state_modifier: "狂轰滥炸"
+ bombing_for_state_modifier_desc:0 "此州正遭受持续的战略轰炸。基础设施与工厂反复被毁，交通与生产秩序严重受扰，民众恐慌加剧；在空袭压力解除前，本州的建设与运转将长期陷入瘫痪。"
+ homeless_work_disruption_state_modifier:0 "百废待兴"
+ homeless_work_disruption_state_modifier_desc:0 "此州大量居民流离失所，生产与公共服务需要优先转向安置与应急保障，导致本州短期停工与效率下降。"
+
+ radiation_level_modificator: "§R当前辐射量§!: £GFX_radiation_texticon"
+ killed_population_modificator: "当前轰炸中平民伤亡"
+
+#   事件
+ publication_nuclear.1.t:0 "[FROM.GetNameDefCap] 向世界宣告核武器的诞生！"
+ publication_nuclear.1.d:0 "[FROM.GetNameDef]国家电视台宣布这一震撼性消息 \n 「经过数年秘密攻关，我们的科学家们成功突破了原子能的最后屏障，科学的力量已撕裂物质的核心，我们手中现在握着诸神的雷霆，历史在此刻被永久改写,[FROM.GetName]已成为世界上掌握核武器技术的国家」\n\n 此刻，各国反应剧烈而复杂，外交使节纷纷试探[FROM.GetName]的意图，报纸头版充斥着末日预言，他们的领导人紧急召开内阁会议，有人主张立即妥协，也有人叫嚣着...... "
+ publication_nuclear.1.a: "颤抖吧"
+
+ publication_nuclear.2.t:0 "[FROM.GetNameDefCap] 震惊世界！国际战略格局随之改变 "
+ publication_nuclear.2.d:0 "\n[FROM.GetNameDefCap]瞬间获得压倒性军事优势，人们对武器威力的传统认知被彻底颠覆,其震撼远不止于一声巨响和一朵蘑菇云。它像一道劈开历史夜空的强光，瞬间重塑了人类对力量、战争乃至自身命运的认知。这种震惊感，混合了恐惧、敬畏和一种难以言喻的未知，这种震惊感迫使人类第一次必须认真思考自身整体性毁灭的可能性，并在核时代的阴影下，始终艰难地探索着和平与生存的道路\n\n尽管原子弹有着毁灭性的副作用,但其毁灭性的巨大威力也开启了核军备竞赛的帷幕...... "
+ publication_nuclear.2.a: "天呢！" 
+
+# UI
+ statistics_tt:0 "§Y伤亡统计§!"
+ statistics_tt_delayed:0 "查看详细伤亡统计"
+ national_flag_tt:0 "§Y[?national_flag_value.GetName]§!"
+ state_tt:0 "§Y[?state_value.GetName]§!"
+ wasteland_state_tt:0 "§Y[?wasteland_state_value.GetName]§!"
+ global_report_tt:0 "§R全球伤亡报告§!"
+ 
+ global_arm_tt:0 "£GFX_units_texticon  \n\n核袭击阵亡数: [GetGlobalUnitsKilledByNukesText]\n核辐射致死数: [GetGlobalUnitsKilledByRadiationText]\n常规战阵亡数: [GetGlobalUnitsKilledByWarText]"
+
+ global_pop_tt:0 "£GFX_people_texticon  \n\n核袭击死亡数: [GetGlobalPeopleDeathByNukesText]\n核辐射致死数: [GetGlobalPeopleDeathByRadiationText]\n战争中死亡数: [GetGlobalPeopleDeathByWarText]"
+
+ global_rebel_tt:0 "£GFX_rebel_texticon  \n\n抵抗运动死亡: [GetGlobalDiedInMilCrackdownsText]"
+ 
+ global_refugee_tt:0 "£GFX_crop_texticon  \n\n预计难民人数: [GetGlobalRefugeePoolText]"
+
+ country_casualty_details_tt:0 "[event_target:selected_casualty_country.GetFlag] §Y[?event_target:selected_casualty_country.GetName]§!:\n\n• 国家总伤亡人数: [GetTotalCasualtiesFormatted]\n\n• 死于战争的军人数: [GetMilitaryCasualtiesFormatted]\n\n• 死于战争的平民数: [GetCivilianCasualtiesFormatted]"
+ 
+ mopping_up_resistance_group_tt:0 "\n\n• 难民跨境流量: [GetCountryRefugeeBorderNetWeeklyText]\n\n• 难民尚未安置: [GetCountryRefugeePoolText]\n\n• 屠杀抵抗分子: [GetSuppressRebelsFormatted]"
+
+ sort_total_tt:0 "刷新排序"
+ sort_refresh_tt:0 "刷新列表"
+ close_window_tt:0 "关闭"
+ state_total_0_tt:0 "打开州界面"
+ state_total_1_tt:0 "关闭州界面"
+ switch_state_tt:0 "切换到难民详情"
+ switch_wasteland_state_tt:0 "切换到核废土详情"
+
+ homeles_tt:0 "州内难民总量"
+ pop_homeles_tt:0 "[GetStateRefugeePoolText]"
+ homeles_tt_delayed:0 "\n• 州难民人口占本州人口比: [GetStateRefugeeRatioText]\n• 州难民人口占国家难民人口比: [GetStateRefugeeCountryRatioText]"
+ fleeing_tt:0 "难民逃离/迁入州净流量"
+ pop_fleeing_tt:0 "[GetStateRefugeeWeeklyDeltaText]"
+ settle_tt:0 "难民安置率"
+ pop_settle_tt:0 "[GetStateRefugeeResettledRatioText]"
+
+ warning_Influence_tt:0 "\n状态：[GetWastelandRebuildStatusText]\n工序：[GetWastelandRebuildStageText]\n\n国家投送：[?wasteland_rebuild_projection_bonus_display|0+%]\n州内支撑：[?wasteland_rebuild_local_bonus_display|0+%]\n施工阻碍：[?wasteland_rebuild_obstacle_display|0-%]"
+ warning_Influence_txt:0 "\n工程能力：[?wasteland_rebuild_engineering_cache|0%]\n后勤能力：[?wasteland_rebuild_logistics_cache|0%]\n治安能力：[?wasteland_rebuild_security_cache|0%]\n行政能力：[?wasteland_rebuild_admin_cache|0%]\n应急能力：[?wasteland_rebuild_protection_cache|0%]"
+ process_step_tt:0 "[?wasteland_rebuild_progress|0G]/[?wasteland_rebuild_stage_target|0Y]"
+ nuke_repair_finish_tt:0 "[GetWastelandRebuildFinishText]"
+ wasteland_rebuild_resource_tt:0 "[GetWastelandRebuildStageCostText]"
+ wasteland_rebuild_stage_waiting:0 "未开工"
+ wasteland_rebuild_stage_1:0 "封锁排险"
+ wasteland_rebuild_stage_2:0 "清障通路"
+ wasteland_rebuild_stage_3:0 "清运废墟"
+ wasteland_rebuild_stage_4:0 "抢修道路"
+ wasteland_rebuild_stage_5:0 "恢复补给"
+ wasteland_rebuild_stage_6:0 "区域净化"
+ wasteland_rebuild_stage_7:0 "恢复州政"
+ wasteland_rebuild_status_waiting:0 "待命"
+ wasteland_rebuild_status_locked:0 "等待解除非军事区"
+ wasteland_rebuild_status_working:0 "施工中"
+ wasteland_rebuild_status_stopped:0 "停工中，还需[?wasteland_rebuild_stop_days|0]天"
+ wasteland_rebuild_status_ready:0 "可恢复"
+ wasteland_rebuild_finish_locked:0 "全部工序完成后可恢复州状态\n总进度：[?wasteland_rebuild_total_progress|.1%%]"
+ wasteland_rebuild_finish_not_owner:0 "全部工序已完成，但当前仅该州所属国家可恢复原州类型"
+ wasteland_rebuild_finish_ready:0 "点击恢复原州类型并移除废土状态，获得25政治点"
+ wasteland_rebuild_stage_cost_waiting:0 "当前阶段所需资源：未开工"
+ wasteland_rebuild_stage_cost_ready:0 "当前阶段所需资源：无。已满足恢复条件"
+ wasteland_rebuild_stage_cost_1:0 "当前阶段所需资源：支援装备 15"
+ wasteland_rebuild_stage_cost_2:0 "当前阶段所需资源：卡车 5，支援装备 10"
+ wasteland_rebuild_stage_cost_3:0 "当前阶段所需资源：卡车 10"
+ wasteland_rebuild_stage_cost_4:0 "当前阶段所需资源：支援装备 10，卡车 5"
+ wasteland_rebuild_stage_cost_5:0 "当前阶段所需资源：支援装备 30，卡车 5，火车 1"
+ wasteland_rebuild_stage_cost_6:0 "当前阶段所需资源：支援装备 10"
+ wasteland_rebuild_stage_cost_7:0 "当前阶段所需资源：无"
+

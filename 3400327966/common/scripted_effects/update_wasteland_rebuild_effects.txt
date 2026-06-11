@@ -1,0 +1,645 @@
+ # ---------------- 废土重建系统（州作用域） ----------------
+ # 设计目标：
+ # - 核废土州在解除封锁后，按阶段逐步恢复行政、工程、交通与社会秩序
+ # - 重建速度由州内条件、国家投射能力与辐射/破坏障碍共同决定
+ # - 通过缓存变量与分阶段模型，为 UI 展示和后续扩展提供统一入口
+
+ # 保存州在沦为废土前的原始州类别。
+ # 只在首次进入废土流程时写入，避免后续重复覆盖。
+save_wasteland_original_category = {
+	if = {
+		limit = {
+			NOT = { check_variable = { wasteland_rebuild_original_category > 0 } }
+		}
+		if = { limit = { has_state_category = megalopolis } set_variable = { var = wasteland_rebuild_original_category value = 1 } }
+		else_if = { limit = { has_state_category = metropolis } set_variable = { var = wasteland_rebuild_original_category value = 2 } }
+		else_if = { limit = { has_state_category = large_city } set_variable = { var = wasteland_rebuild_original_category value = 3 } }
+		else_if = { limit = { has_state_category = city } set_variable = { var = wasteland_rebuild_original_category value = 4 } }
+		else_if = { limit = { has_state_category = large_town } set_variable = { var = wasteland_rebuild_original_category value = 5 } }
+		else_if = { limit = { has_state_category = town } set_variable = { var = wasteland_rebuild_original_category value = 6 } }
+		else_if = { limit = { has_state_category = rural } set_variable = { var = wasteland_rebuild_original_category value = 7 } }
+		else_if = { limit = { has_state_category = pastoral } set_variable = { var = wasteland_rebuild_original_category value = 8 } }
+		else_if = { limit = { has_state_category = small_island } set_variable = { var = wasteland_rebuild_original_category value = 9 } }
+		else_if = { limit = { has_state_category = enclave } set_variable = { var = wasteland_rebuild_original_category value = 10 } }
+		else_if = { limit = { has_state_category = tiny_island } set_variable = { var = wasteland_rebuild_original_category value = 11 } }
+		else = { set_variable = { var = wasteland_rebuild_original_category value = 4 } }
+	}
+}
+
+ # 清空废土重建的阶段、进度、缓存与展示变量。
+ # 用于州恢复原状或需要重新初始化废土流程时调用。
+reset_wasteland_rebuild_state = {
+	clear_variable = wasteland_rebuild_stage
+	clear_variable = wasteland_rebuild_progress
+	clear_variable = wasteland_rebuild_total_progress
+	set_variable = { var = wasteland_rebuild_stop_days value = 0 }
+	set_variable = { var = wasteland_rebuild_last_tick_day value = 0 }
+	clear_variable = wasteland_rebuild_stage_target
+	set_variable = { var = wasteland_rebuild_ready value = 0 }
+	clear_variable = wasteland_rebuild_engineering_cache
+	clear_variable = wasteland_rebuild_logistics_cache
+	clear_variable = wasteland_rebuild_security_cache
+	clear_variable = wasteland_rebuild_admin_cache
+	clear_variable = wasteland_rebuild_protection_cache
+	clear_variable = wasteland_rebuild_stage_base_display
+	clear_variable = wasteland_rebuild_projection_bonus_display
+	clear_variable = wasteland_rebuild_local_bonus_display
+	clear_variable = wasteland_rebuild_obstacle_display
+}
+
+ # 按当前阶段写入该阶段的目标进度值。
+ # 这些阈值同时用于阶段推进判定和 UI 展示。
+update_wasteland_rebuild_stage_target = {
+	if = { limit = { check_variable = { wasteland_rebuild_stage = 1 } } set_variable = { var = wasteland_rebuild_stage_target value = 20 } }
+	else_if = { limit = { check_variable = { wasteland_rebuild_stage = 2 } } set_variable = { var = wasteland_rebuild_stage_target value = 50 } }
+	else_if = { limit = { check_variable = { wasteland_rebuild_stage = 3 } } set_variable = { var = wasteland_rebuild_stage_target value = 75 } }
+	else_if = { limit = { check_variable = { wasteland_rebuild_stage = 4 } } set_variable = { var = wasteland_rebuild_stage_target value = 95 } }
+	else_if = { limit = { check_variable = { wasteland_rebuild_stage = 5 } } set_variable = { var = wasteland_rebuild_stage_target value = 85 } }
+	else_if = { limit = { check_variable = { wasteland_rebuild_stage = 6 } } set_variable = { var = wasteland_rebuild_stage_target value = 70 } }
+	else_if = { limit = { check_variable = { wasteland_rebuild_stage = 7 } } set_variable = { var = wasteland_rebuild_stage_target value = 55 } }
+	else = { clear_variable = wasteland_rebuild_stage_target }
+}
+
+ # 将当前阶段进度换算成总进度百分比。
+ # 前六阶段按固定权重累计，第七阶段按当前 progress 线性补足到 100%。
+update_wasteland_rebuild_total_progress = {
+	if = {
+		limit = { check_variable = { wasteland_rebuild_ready > 0 } }
+		set_variable = { var = wasteland_rebuild_total_progress value = 100 }
+	}
+	else_if = {
+		limit = { NOT = { check_variable = { wasteland_rebuild_stage > 0 } } }
+		set_variable = { var = wasteland_rebuild_total_progress value = 0 }
+	}
+	else = {
+		set_temp_variable = { var = wasteland_rebuild_total_progress_temp value = 0 }
+
+		if = {
+			limit = { check_variable = { wasteland_rebuild_stage > 1 } }
+			add_to_temp_variable = { var = wasteland_rebuild_total_progress_temp value = 20 }
+		}
+		if = {
+			limit = { check_variable = { wasteland_rebuild_stage > 2 } }
+			add_to_temp_variable = { var = wasteland_rebuild_total_progress_temp value = 50 }
+		}
+		if = {
+			limit = { check_variable = { wasteland_rebuild_stage > 3 } }
+			add_to_temp_variable = { var = wasteland_rebuild_total_progress_temp value = 75 }
+		}
+		if = {
+			limit = { check_variable = { wasteland_rebuild_stage > 4 } }
+			add_to_temp_variable = { var = wasteland_rebuild_total_progress_temp value = 95 }
+		}
+		if = {
+			limit = { check_variable = { wasteland_rebuild_stage > 5 } }
+			add_to_temp_variable = { var = wasteland_rebuild_total_progress_temp value = 85 }
+		}
+		if = {
+			limit = { check_variable = { wasteland_rebuild_stage > 6 } }
+			add_to_temp_variable = { var = wasteland_rebuild_total_progress_temp value = 70 }
+		}
+		if = {
+			limit = { check_variable = { wasteland_rebuild_stage = 7 } }
+			add_to_temp_variable = { var = wasteland_rebuild_total_progress_temp value = wasteland_rebuild_progress }
+		}
+		else_if = {
+			limit = { check_variable = { wasteland_rebuild_stage = 6 } }
+			add_to_temp_variable = { var = wasteland_rebuild_total_progress_temp value = wasteland_rebuild_progress }
+		}
+		else_if = {
+			limit = { check_variable = { wasteland_rebuild_stage = 5 } }
+			add_to_temp_variable = { var = wasteland_rebuild_total_progress_temp value = wasteland_rebuild_progress }
+		}
+		else_if = {
+			limit = { check_variable = { wasteland_rebuild_stage = 4 } }
+			add_to_temp_variable = { var = wasteland_rebuild_total_progress_temp value = wasteland_rebuild_progress }
+		}
+		else_if = {
+			limit = { check_variable = { wasteland_rebuild_stage = 3 } }
+			add_to_temp_variable = { var = wasteland_rebuild_total_progress_temp value = wasteland_rebuild_progress }
+		}
+		else_if = {
+			limit = { check_variable = { wasteland_rebuild_stage = 2 } }
+			add_to_temp_variable = { var = wasteland_rebuild_total_progress_temp value = wasteland_rebuild_progress }
+		}
+		else_if = {
+			limit = { check_variable = { wasteland_rebuild_stage = 1 } }
+			add_to_temp_variable = { var = wasteland_rebuild_total_progress_temp value = wasteland_rebuild_progress }
+		}
+
+		multiply_temp_variable = { var = wasteland_rebuild_total_progress_temp value = 100 }
+		divide_temp_variable = { var = wasteland_rebuild_total_progress_temp value = 450 }
+
+		if = {
+			limit = { check_variable = { wasteland_rebuild_total_progress_temp > 100 } }
+			set_temp_variable = { var = wasteland_rebuild_total_progress_temp value = 100 }
+		}
+
+		set_variable = { var = wasteland_rebuild_total_progress value = wasteland_rebuild_total_progress_temp }
+	}
+}
+
+ # 将废土州恢复为原始州类别，并清理废土标记与重建状态。
+ # 当重建完全结束或外部脚本强制恢复时调用。
+restore_wasteland_original_category = {
+	set_demilitarized_zone = no
+	clr_state_flag = nuke_repair_wasteland_state
+	if = { limit = { check_variable = { wasteland_rebuild_original_category = 1 } } set_state_category = megalopolis }
+	else_if = { limit = { check_variable = { wasteland_rebuild_original_category = 2 } } set_state_category = metropolis }
+	else_if = { limit = { check_variable = { wasteland_rebuild_original_category = 3 } } set_state_category = large_city }
+	else_if = { limit = { check_variable = { wasteland_rebuild_original_category = 4 } } set_state_category = city }
+	else_if = { limit = { check_variable = { wasteland_rebuild_original_category = 5 } } set_state_category = large_town }
+	else_if = { limit = { check_variable = { wasteland_rebuild_original_category = 6 } } set_state_category = town }
+	else_if = { limit = { check_variable = { wasteland_rebuild_original_category = 7 } } set_state_category = rural }
+	else_if = { limit = { check_variable = { wasteland_rebuild_original_category = 8 } } set_state_category = pastoral }
+	else_if = { limit = { check_variable = { wasteland_rebuild_original_category = 9 } } set_state_category = small_island }
+	else_if = { limit = { check_variable = { wasteland_rebuild_original_category = 10 } } set_state_category = enclave }
+	else_if = { limit = { check_variable = { wasteland_rebuild_original_category = 11 } } set_state_category = tiny_island }
+	else = { set_state_category = city }
+	clear_variable = wasteland_rebuild_original_category
+	reset_wasteland_rebuild_state = yes
+}
+
+# 完成废土恢复并给予拥有者政治点奖励。
+# 供玩家 GUI 点击与 AI 自动恢复共用，避免奖励逻辑重复分散。
+complete_wasteland_restore_with_reward = {
+	owner = { add_political_power = 25 }
+	restore_wasteland_original_category = yes
+}
+
+# 工序资源消耗：每完成一个重建阶段时，由州拥有者支付一笔工程相关资源。
+# 当前仅消耗可稳定扣减的库存型建设资源：支援装备、卡车、火车。
+# 若资源不足，则阶段不会推进，并将进度卡在当前目标值等待补足库存。
+consume_wasteland_rebuild_stage_resources = {
+	set_temp_variable = { var = wasteland_rebuild_stage_advance_paid value = 0 }
+
+	if = {
+		limit = {
+			check_variable = { wasteland_rebuild_stage = 1 }
+			owner = {
+				has_equipment = { support_equipment > 14 }
+			}
+		}
+		owner = {
+			add_equipment_to_stockpile = { type = support_equipment amount = -15 }
+		}
+		set_temp_variable = { var = wasteland_rebuild_stage_advance_paid value = 1 }
+	}
+	else_if = {
+		limit = {
+			check_variable = { wasteland_rebuild_stage = 2 }
+			owner = {
+				has_equipment = { support_equipment > 9 }
+				has_equipment = { motorized_equipment_1 > 4 }
+			}
+		}
+		owner = {
+			add_equipment_to_stockpile = { type = support_equipment amount = -10 }
+			add_equipment_to_stockpile = { type = motorized_equipment_1 amount = -5 }
+		}
+		set_temp_variable = { var = wasteland_rebuild_stage_advance_paid value = 1 }
+	}
+	else_if = {
+		limit = {
+			check_variable = { wasteland_rebuild_stage = 3 }
+			owner = {
+				has_equipment = { motorized_equipment_1 > 9 }
+			}
+		}
+		owner = {
+			add_equipment_to_stockpile = { type = motorized_equipment_1 amount = -10 }
+		}
+		set_temp_variable = { var = wasteland_rebuild_stage_advance_paid value = 1 }
+	}
+	else_if = {
+		limit = {
+			check_variable = { wasteland_rebuild_stage = 4 }
+			owner = {
+				has_equipment = { motorized_equipment_1 > 4 }
+				has_equipment = { support_equipment > 9 }
+			}
+		}
+		owner = {
+			add_equipment_to_stockpile = { type = motorized_equipment_1 amount = -5 }
+			add_equipment_to_stockpile = { type = support_equipment amount = -10 }
+		}
+		set_temp_variable = { var = wasteland_rebuild_stage_advance_paid value = 1 }
+	}
+	else_if = {
+		limit = {
+			check_variable = { wasteland_rebuild_stage = 5 }
+			owner = {
+				has_equipment = { support_equipment > 29 }
+				has_equipment = { motorized_equipment_1 > 4 }
+				has_equipment = { train_equipment > 0 }
+			}
+		}
+		owner = {
+			add_equipment_to_stockpile = { type = support_equipment amount = -30 }
+			add_equipment_to_stockpile = { type = motorized_equipment_1 amount = -5 }
+			add_equipment_to_stockpile = { type = train_equipment amount = -1 }
+		}
+		set_temp_variable = { var = wasteland_rebuild_stage_advance_paid value = 1 }
+	}
+	else_if = {
+		limit = {
+			check_variable = { wasteland_rebuild_stage = 6 }
+			owner = {
+				has_equipment = { support_equipment > 9 }
+			}
+		}
+		owner = {
+			add_equipment_to_stockpile = { type = support_equipment amount = -10 }
+		}
+		set_temp_variable = { var = wasteland_rebuild_stage_advance_paid value = 1 }
+	}
+	else_if = {
+		limit = {
+			check_variable = { wasteland_rebuild_stage = 7 }
+			always = yes
+		}
+		set_temp_variable = { var = wasteland_rebuild_stage_advance_paid value = 1 }
+	}
+
+	if = {
+		limit = { check_variable = { wasteland_rebuild_stage_advance_paid > 0 } }
+		if = {
+			limit = { check_variable = { wasteland_rebuild_stage = 7 } }
+			set_variable = { var = wasteland_rebuild_progress value = wasteland_rebuild_stage_target }
+			set_variable = { var = wasteland_rebuild_ready value = 1 }
+		}
+		else = {
+			add_to_variable = { wasteland_rebuild_stage = 1 }
+			set_variable = { var = wasteland_rebuild_progress value = 0 }
+			update_wasteland_rebuild_stage_target = yes
+		}
+	}
+	else = {
+		set_variable = { var = wasteland_rebuild_progress value = wasteland_rebuild_stage_target }
+		if = {
+			limit = { check_variable = { wasteland_rebuild_stop_days < 2 } }
+			set_variable = { var = wasteland_rebuild_stop_days value = 2 }
+		}
+	}
+}
+
+ # 计算国家层面的重建投射能力。
+ # 这些变量稍后会被州缓存，用来表示控制国可向废土州投送的工程、后勤、治安、行政与防护能力。
+update_country_rebuild_projection = {
+	set_temp_variable = { var = country_rebuild_engineering_temp value = 0.8 }
+	if = { limit = { num_of_civilian_factories > 10 } add_to_temp_variable = { var = country_rebuild_engineering_temp value = 0.3 } }
+	if = { limit = { num_of_civilian_factories > 25 } add_to_temp_variable = { var = country_rebuild_engineering_temp value = 0.5 } }
+	if = { limit = { num_of_civilian_factories > 50 } add_to_temp_variable = { var = country_rebuild_engineering_temp value = 0.7 } }
+	if = { limit = { num_of_civilian_factories > 90 } add_to_temp_variable = { var = country_rebuild_engineering_temp value = 0.8 } }
+	if = { limit = { has_war = yes } multiply_temp_variable = { var = country_rebuild_engineering_temp value = 0.90 } }
+	if = { limit = { has_idea = nuke_repair_admin_collapse_idea } multiply_temp_variable = { var = country_rebuild_engineering_temp value = 0.75 } }
+	set_variable = { var = country_rebuild_engineering_power value = country_rebuild_engineering_temp }
+
+	set_temp_variable = { var = country_rebuild_logistics_temp value = 0.7 }
+	if = { limit = { num_of_civilian_factories > 10 } add_to_temp_variable = { var = country_rebuild_logistics_temp value = 0.2 } }
+	if = { limit = { num_of_civilian_factories > 30 } add_to_temp_variable = { var = country_rebuild_logistics_temp value = 0.3 } }
+	if = { limit = { has_equipment = { train_equipment > 19 } } add_to_temp_variable = { var = country_rebuild_logistics_temp value = 0.2 } }
+	if = { limit = { has_equipment = { train_equipment > 79 } } add_to_temp_variable = { var = country_rebuild_logistics_temp value = 0.4 } }
+	if = { limit = { has_equipment = { motorized_equipment_1 > 199 } } add_to_temp_variable = { var = country_rebuild_logistics_temp value = 0.2 } }
+	if = { limit = { has_equipment = { motorized_equipment_1 > 999 } } add_to_temp_variable = { var = country_rebuild_logistics_temp value = 0.4 } }
+	if = { limit = { has_war = yes } multiply_temp_variable = { var = country_rebuild_logistics_temp value = 0.92 } }
+	set_variable = { var = country_rebuild_logistics_power value = country_rebuild_logistics_temp }
+
+	set_temp_variable = { var = country_rebuild_security_temp value = 0.7 }
+	if = { limit = { has_stability > 0.30 } add_to_temp_variable = { var = country_rebuild_security_temp value = 0.2 } }
+	if = { limit = { has_stability > 0.50 } add_to_temp_variable = { var = country_rebuild_security_temp value = 0.3 } }
+	if = { limit = { has_stability > 0.70 } add_to_temp_variable = { var = country_rebuild_security_temp value = 0.3 } }
+	if = { limit = { has_war_support > 0.30 } add_to_temp_variable = { var = country_rebuild_security_temp value = 0.2 } }
+	if = { limit = { has_war_support > 0.60 } add_to_temp_variable = { var = country_rebuild_security_temp value = 0.2 } }
+	if = { limit = { has_idea = nuke_repair_admin_collapse_idea } multiply_temp_variable = { var = country_rebuild_security_temp value = 0.8 } }
+	set_variable = { var = country_rebuild_security_power value = country_rebuild_security_temp }
+
+	set_temp_variable = { var = country_rebuild_admin_temp value = 0.7 }
+	if = { limit = { has_stability > 0.35 } add_to_temp_variable = { var = country_rebuild_admin_temp value = 0.2 } }
+	if = { limit = { has_stability > 0.55 } add_to_temp_variable = { var = country_rebuild_admin_temp value = 0.3 } }
+	if = { limit = { has_stability > 0.75 } add_to_temp_variable = { var = country_rebuild_admin_temp value = 0.3 } }
+	if = { limit = { num_of_civilian_factories > 30 } add_to_temp_variable = { var = country_rebuild_admin_temp value = 0.2 } }
+	if = { limit = { has_idea = nuke_repair_admin_collapse_idea } multiply_temp_variable = { var = country_rebuild_admin_temp value = 0.45 } }
+	if = { limit = { has_war = yes } multiply_temp_variable = { var = country_rebuild_admin_temp value = 0.9 } }
+	set_variable = { var = country_rebuild_admin_power value = country_rebuild_admin_temp }
+
+	set_temp_variable = { var = country_rebuild_protection_temp value = 0.6 }
+	if = { limit = { num_of_civilian_factories > 15 } add_to_temp_variable = { var = country_rebuild_protection_temp value = 0.2 } }
+	if = { limit = { num_of_civilian_factories > 40 } add_to_temp_variable = { var = country_rebuild_protection_temp value = 0.3 } }
+	if = { limit = { has_stability > 0.60 } add_to_temp_variable = { var = country_rebuild_protection_temp value = 0.2 } }
+	if = { limit = { has_equipment = { motorized_equipment_1 > 499 } } add_to_temp_variable = { var = country_rebuild_protection_temp value = 0.2 } }
+	if = { limit = { has_idea = nuke_repair_admin_collapse_idea } multiply_temp_variable = { var = country_rebuild_protection_temp value = 0.85 } }
+	set_variable = { var = country_rebuild_protection_power value = country_rebuild_protection_temp }
+}
+
+ # 将控制国的重建投射能力写入州缓存。
+ # 这样州侧模型可直接读取缓存，避免每次推进都重新跨作用域计算。
+refresh_wasteland_rebuild_projection_cache = {
+	clear_variable = wasteland_rebuild_engineering_cache
+	clear_variable = wasteland_rebuild_logistics_cache
+	clear_variable = wasteland_rebuild_security_cache
+	clear_variable = wasteland_rebuild_admin_cache
+	clear_variable = wasteland_rebuild_protection_cache
+	controller = {
+		add_to_variable = { PREV.wasteland_rebuild_engineering_cache = country_rebuild_engineering_power }
+		add_to_variable = { PREV.wasteland_rebuild_logistics_cache = country_rebuild_logistics_power }
+		add_to_variable = { PREV.wasteland_rebuild_security_cache = country_rebuild_security_power }
+		add_to_variable = { PREV.wasteland_rebuild_admin_cache = country_rebuild_admin_power }
+		add_to_variable = { PREV.wasteland_rebuild_protection_cache = country_rebuild_protection_power }
+	}
+}
+
+ # 根据当前阶段，建立“基础推进 + 国家投射 + 本地条件 - 障碍”的阶段模型。
+ # 结果一方面用于当天推进结算，另一方面写入展示变量供界面读取。
+update_wasteland_rebuild_stage_model = {
+	set_temp_variable = { var = wasteland_rebuild_stage_base value = 0.0 }
+	set_temp_variable = { var = wasteland_rebuild_projection_bonus value = 0.0 }
+	set_temp_variable = { var = wasteland_rebuild_local_bonus value = 0.0 }
+	set_temp_variable = { var = wasteland_rebuild_obstacle value = 0.0 }
+
+	# 本地条件加成：基础设施与补给节点越完整，越利于恢复工作展开。
+	if = {
+		limit = { infrastructure > 0 }
+		set_temp_variable_to_random = { var = wasteland_rebuild_local_piece min = 0.1 max = 0.4 }
+		add_to_temp_variable = { var = wasteland_rebuild_local_bonus value = wasteland_rebuild_local_piece }
+	}
+	if = {
+		limit = { infrastructure > 4 }
+		set_temp_variable_to_random = { var = wasteland_rebuild_local_piece min = 0.3 max = 0.6 }
+		add_to_temp_variable = { var = wasteland_rebuild_local_bonus value = wasteland_rebuild_local_piece }
+	}
+	if = {
+		limit = { infrastructure > 7 }
+		set_temp_variable_to_random = { var = wasteland_rebuild_local_piece min = 0.4 max = 0.8 }
+		add_to_temp_variable = { var = wasteland_rebuild_local_bonus value = wasteland_rebuild_local_piece }
+	}
+	if = {
+		limit = { supply_node > 0 }
+		set_temp_variable_to_random = { var = wasteland_rebuild_local_piece min = 0.3 max = 0.7 }
+		add_to_temp_variable = { var = wasteland_rebuild_local_bonus value = wasteland_rebuild_local_piece }
+	}
+
+	# 障碍项：持续轰炸与流民冲击会拖慢重建。
+	if = {
+		limit = { has_dynamic_modifier = { modifier = bombing_for_state_modifier } }
+		set_temp_variable_to_random = { var = wasteland_rebuild_obstacle min = 0.9 max = 1.8 }
+	}
+	if = {
+		limit = { has_dynamic_modifier = { modifier = homeless_work_disruption_state_modifier } }
+		set_temp_variable_to_random = { var = wasteland_rebuild_homeless_obstacle min = 0.5 max = 1.2 }
+		add_to_temp_variable = { var = wasteland_rebuild_obstacle value = wasteland_rebuild_homeless_obstacle }
+	}
+
+	# 阶段模型：
+	# 1 更偏治安/行政恢复；2-5 逐步转向工程与后勤；6 强调防护；7 回到行政收尾。
+	if = {
+		limit = { check_variable = { wasteland_rebuild_stage = 1 } }
+		set_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_security_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_bonus value = 0.5 }
+		set_temp_variable = { var = wasteland_rebuild_projection_piece value = wasteland_rebuild_admin_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_piece value = 0.2 }
+		add_to_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_projection_piece }
+		set_temp_variable = { var = wasteland_rebuild_projection_piece value = wasteland_rebuild_engineering_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_piece value = 0.1 }
+		add_to_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_projection_piece }
+		multiply_temp_variable = { var = wasteland_rebuild_local_bonus value = 0.6 }
+		if = {
+			limit = { check_variable = { radiation_var > 0.01 } }
+			set_temp_variable_to_random = { var = wasteland_rebuild_radiation_obstacle min = 0.1 max = 0.4 }
+			add_to_temp_variable = { var = wasteland_rebuild_obstacle value = wasteland_rebuild_radiation_obstacle }
+		}
+	}
+	else_if = {
+		limit = { check_variable = { wasteland_rebuild_stage = 2 } }
+		set_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_engineering_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_bonus value = 0.4 }
+		set_temp_variable = { var = wasteland_rebuild_projection_piece value = wasteland_rebuild_logistics_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_piece value = 0.3 }
+		add_to_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_projection_piece }
+		set_temp_variable = { var = wasteland_rebuild_projection_piece value = wasteland_rebuild_security_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_piece value = 0.1 }
+		add_to_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_projection_piece }
+		multiply_temp_variable = { var = wasteland_rebuild_local_bonus value = 0.8 }
+	}
+	else_if = {
+		limit = { check_variable = { wasteland_rebuild_stage = 3 } }
+		set_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_engineering_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_bonus value = 0.5 }
+		set_temp_variable = { var = wasteland_rebuild_projection_piece value = wasteland_rebuild_logistics_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_piece value = 0.25 }
+		add_to_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_projection_piece }
+		set_temp_variable = { var = wasteland_rebuild_projection_piece value = wasteland_rebuild_admin_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_piece value = 0.1 }
+		add_to_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_projection_piece }
+		multiply_temp_variable = { var = wasteland_rebuild_local_bonus value = 0.7 }
+	}
+	else_if = {
+		limit = { check_variable = { wasteland_rebuild_stage = 4 } }
+		set_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_engineering_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_bonus value = 0.45 }
+		set_temp_variable = { var = wasteland_rebuild_projection_piece value = wasteland_rebuild_logistics_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_piece value = 0.35 }
+		add_to_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_projection_piece }
+		multiply_temp_variable = { var = wasteland_rebuild_local_bonus value = 1.0 }
+	}
+	else_if = {
+		limit = { check_variable = { wasteland_rebuild_stage = 5 } }
+		set_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_logistics_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_bonus value = 0.5 }
+		set_temp_variable = { var = wasteland_rebuild_projection_piece value = wasteland_rebuild_engineering_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_piece value = 0.25 }
+		add_to_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_projection_piece }
+		set_temp_variable = { var = wasteland_rebuild_projection_piece value = wasteland_rebuild_admin_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_piece value = 0.1 }
+		add_to_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_projection_piece }
+		multiply_temp_variable = { var = wasteland_rebuild_local_bonus value = 1.1 }
+	}
+	else_if = {
+		limit = { check_variable = { wasteland_rebuild_stage = 6 } }
+		set_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_protection_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_bonus value = 0.5 }
+		set_temp_variable = { var = wasteland_rebuild_projection_piece value = wasteland_rebuild_engineering_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_piece value = 0.2 }
+		add_to_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_projection_piece }
+		set_temp_variable = { var = wasteland_rebuild_projection_piece value = wasteland_rebuild_admin_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_piece value = 0.1 }
+		add_to_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_projection_piece }
+		multiply_temp_variable = { var = wasteland_rebuild_local_bonus value = 0.6 }
+		if = {
+			limit = { check_variable = { radiation_var > 0.01 } }
+			set_temp_variable_to_random = { var = wasteland_rebuild_radiation_obstacle min = 0.3 max = 1.0 }
+			add_to_temp_variable = { var = wasteland_rebuild_obstacle value = wasteland_rebuild_radiation_obstacle }
+		}
+	}
+	else_if = {
+		limit = { check_variable = { wasteland_rebuild_stage = 7 } }
+		set_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_admin_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_bonus value = 0.45 }
+		set_temp_variable = { var = wasteland_rebuild_projection_piece value = wasteland_rebuild_security_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_piece value = 0.25 }
+		add_to_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_projection_piece }
+		set_temp_variable = { var = wasteland_rebuild_projection_piece value = wasteland_rebuild_engineering_cache }
+		multiply_temp_variable = { var = wasteland_rebuild_projection_piece value = 0.1 }
+		add_to_temp_variable = { var = wasteland_rebuild_projection_bonus value = wasteland_rebuild_projection_piece }
+		multiply_temp_variable = { var = wasteland_rebuild_local_bonus value = 0.7 }
+	}
+
+	set_variable = { var = wasteland_rebuild_stage_base_display value = wasteland_rebuild_stage_base }
+	set_variable = { var = wasteland_rebuild_projection_bonus_display value = wasteland_rebuild_projection_bonus }
+	set_variable = { var = wasteland_rebuild_local_bonus_display value = wasteland_rebuild_local_bonus }
+	set_variable = { var = wasteland_rebuild_obstacle_display value = wasteland_rebuild_obstacle }
+}
+
+ # 废土州主推进逻辑。
+ # 预期作用域：STATE
+ # 主要流程：
+ # - 初始化阶段与边界值
+ # - 依据日期差控制“每日仅推进一次”
+ # - 刷新控制国投射缓存与阶段模型
+ # - 在高辐射下随机触发停工天数
+ # - 若可施工，则计算净推进并在达标后进入下一阶段/完成重建
+wasteland_state_construction = {
+	if = {
+		limit = {
+			is_demilitarized_zone = no
+			NOT = { check_variable = { wasteland_rebuild_stage > 0 } }
+			NOT = { check_variable = { wasteland_rebuild_ready > 0 } }
+		}
+		set_variable = { var = wasteland_rebuild_stage value = 1 }
+		set_variable = { var = wasteland_rebuild_progress value = 0 }
+		set_variable = { var = wasteland_rebuild_stop_days value = 0 }
+	}
+
+	if = {
+		limit = { check_variable = { wasteland_rebuild_stage > 7 } }
+		set_variable = { var = wasteland_rebuild_stage value = 7 }
+		set_variable = { var = wasteland_rebuild_ready value = 1 }
+	}
+
+	update_wasteland_rebuild_stage_target = yes
+	update_wasteland_rebuild_total_progress = yes
+
+	# 使用全局天数与上次 tick 对比，确保同一州每天最多推进一次。
+	set_temp_variable = { var = wasteland_rebuild_day_delta value = global.num_days }
+	subtract_from_temp_variable = { var = wasteland_rebuild_day_delta value = wasteland_rebuild_last_tick_day }
+
+	if = {
+		limit = { check_variable = { wasteland_rebuild_ready > 0 } }
+		set_temp_variable = { var = wasteland_rebuild_can_work_today value = 0 }
+	}
+	else_if = {
+		limit = { is_demilitarized_zone = yes }
+		set_temp_variable = { var = wasteland_rebuild_can_work_today value = 0 }
+	}
+	else_if = {
+		limit = {
+			check_variable = { wasteland_rebuild_stage > 0 }
+			check_variable = { wasteland_rebuild_day_delta > 0 }
+		}
+		set_variable = { var = wasteland_rebuild_last_tick_day value = global.num_days }
+		set_temp_variable = { var = wasteland_rebuild_can_work_today value = 1 }
+		refresh_wasteland_rebuild_projection_cache = yes
+		update_wasteland_rebuild_stage_model = yes
+
+		# 已处于停工状态时，先消耗停工天数，不进行当日推进。
+		if = {
+			limit = { check_variable = { wasteland_rebuild_stop_days > 0 } }
+			set_temp_variable = { var = wasteland_rebuild_can_work_today value = 0 }
+			add_to_variable = { wasteland_rebuild_stop_days = -1 }
+			if = {
+				limit = { check_variable = { wasteland_rebuild_stop_days < 0 } }
+				set_variable = { var = wasteland_rebuild_stop_days value = 0 }
+			}
+		}
+
+		if = {
+			limit = { check_variable = { wasteland_rebuild_can_work_today > 0 } }
+			# 辐射越高，越容易触发停工；第 6 阶段与高防护缓存可部分缓解影响。
+			if = {
+				limit = { check_variable = { radiation_var > 7 } }
+				if = {
+					limit = {
+						check_variable = { wasteland_rebuild_stage = 6 }
+						check_variable = { wasteland_rebuild_protection_cache > 2.0 }
+					}
+					random = { chance = 45 set_variable_to_random = { var = wasteland_rebuild_stop_days min = 4 max = 7 integer = yes } }
+				}
+				else_if = {
+					limit = { check_variable = { wasteland_rebuild_stage = 6 } }
+					random = { chance = 65 set_variable_to_random = { var = wasteland_rebuild_stop_days min = 4 max = 7 integer = yes } }
+				}
+				else_if = {
+					limit = { check_variable = { wasteland_rebuild_protection_cache > 2.0 } }
+					random = { chance = 35 set_variable_to_random = { var = wasteland_rebuild_stop_days min = 3 max = 6 integer = yes } }
+				}
+				else = {
+					random = { chance = 50 set_variable_to_random = { var = wasteland_rebuild_stop_days min = 4 max = 7 integer = yes } }
+				}
+			}
+			else_if = {
+				limit = { check_variable = { radiation_var > 3 } }
+				if = {
+					limit = {
+						check_variable = { wasteland_rebuild_stage = 6 }
+						check_variable = { wasteland_rebuild_protection_cache > 2.0 }
+					}
+					random = { chance = 25 set_variable_to_random = { var = wasteland_rebuild_stop_days min = 2 max = 4 integer = yes } }
+				}
+				else_if = {
+					limit = { check_variable = { wasteland_rebuild_stage = 6 } }
+					random = { chance = 45 set_variable_to_random = { var = wasteland_rebuild_stop_days min = 2 max = 5 integer = yes } }
+				}
+				else_if = {
+					limit = { check_variable = { wasteland_rebuild_protection_cache > 2.0 } }
+					random = { chance = 20 set_variable_to_random = { var = wasteland_rebuild_stop_days min = 1 max = 3 integer = yes } }
+				}
+				else = {
+					random = { chance = 35 set_variable_to_random = { var = wasteland_rebuild_stop_days min = 2 max = 4 integer = yes } }
+				}
+			}
+			else_if = {
+				limit = { check_variable = { radiation_var > 0.01 } }
+				if = {
+					limit = { check_variable = { wasteland_rebuild_protection_cache > 2.0 } }
+					random = { chance = 10 set_variable_to_random = { var = wasteland_rebuild_stop_days min = 1 max = 2 integer = yes } }
+				}
+				else = {
+					random = { chance = 20 set_variable_to_random = { var = wasteland_rebuild_stop_days min = 1 max = 2 integer = yes } }
+				}
+			}
+
+			if = {
+				limit = { check_variable = { wasteland_rebuild_stop_days > 0 } }
+				set_temp_variable = { var = wasteland_rebuild_can_work_today value = 0 }
+			}
+			else = {
+				# 当日净推进 = 国家投射加成 + 本地加成 - 障碍项，最低不小于 0。
+				set_temp_variable = { var = wasteland_rebuild_net_progress value = 0 }
+				add_to_temp_variable = { var = wasteland_rebuild_net_progress value = wasteland_rebuild_projection_bonus }
+				add_to_temp_variable = { var = wasteland_rebuild_net_progress value = wasteland_rebuild_local_bonus }
+				subtract_from_temp_variable = { var = wasteland_rebuild_net_progress value = wasteland_rebuild_obstacle }
+				if = {
+					limit = { check_variable = { wasteland_rebuild_net_progress < 0 } }
+					set_temp_variable = { var = wasteland_rebuild_net_progress value = 0 }
+				}
+				add_to_variable = { wasteland_rebuild_progress = wasteland_rebuild_net_progress }
+
+				# 达到当前阶段目标后进入下一阶段；第 7 阶段达标即标记为已完成。
+				set_temp_variable = { var = wasteland_rebuild_stage_compare value = wasteland_rebuild_progress }
+				subtract_from_temp_variable = { var = wasteland_rebuild_stage_compare value = wasteland_rebuild_stage_target }
+				if = {
+					limit = {
+						OR = {
+							check_variable = { wasteland_rebuild_stage_compare > 0 }
+							check_variable = { wasteland_rebuild_stage_compare = 0 }
+						}
+					}
+					consume_wasteland_rebuild_stage_resources = yes
+				}
+				update_wasteland_rebuild_total_progress = yes
+			}
+		}
+	}
+
+	update_wasteland_rebuild_total_progress = yes
+}

@@ -1,0 +1,366 @@
+Strategic_Nuke_Operation = {
+ # 核公开
+	Make_Public_Nuke = {
+        icon = - 
+        priority = 10 
+		visible = { 
+			is_special_project_completed = sp:sp_nuclear_bomb
+			NOT = { has_idea = nuclear_state_idea }
+			check_variable = { num_equipment@nuclear_missile_equipment > 0 }
+		}
+        available = { 
+			always = yes
+        }
+        fire_only_once = yes 
+        days_remove = 0  
+        cost = 0  
+  
+        complete_effect = {
+            hidden_effect = {
+                news_event = { hours = 6 id = publication_nuclear.1 }  
+			}
+			add_ideas = nuclear_state_idea
+        }
+    }
+ # 兵工
+	Arms_Industry = {
+		icon = GFX_idea_nuke_make
+		visible = {	not = { has_country_flag = Arms_Industry }}
+		available = {
+			has_tech = assembly_line_production
+		}
+		cost = 50
+		
+		fire_only_once = no
+		ai_will_do = { 
+			base = 0
+		}
+		complete_effect = { 
+			activate_mission = The_Beacon_Project
+			activate_mission = Weapons_Production_Lines
+			add_dynamic_modifier = { modifier = new_high_technology }
+			add_offsite_building = { 
+				type = arms_factory
+				level = 10
+			}
+			set_country_flag = Arms_Industry
+		}
+	}
+
+	Arms_Industry_0 = { 
+		icon = GFX_idea_nuke_make
+		days_remove = 0
+		fire_only_once = no
+		visible = {  has_country_flag = Arms_Industry }
+		ai_will_do = { factor = 0 }	
+		complete_effect = { 
+			clr_country_flag = Arms_Industry
+			add_offsite_building = { 
+				type = arms_factory
+				level = -10
+			}
+		}
+	}
+	
+	The_Beacon_Project = { 
+		icon = GFX_idea_the_fabrication
+		fire_only_once = no
+		is_good = yes 
+		days_mission_timeout = 30
+		activation = { 
+			has_country_flag = Arms_Industry
+		}
+		available = {   
+			always = no                        
+		}
+		cancel_trigger = { 
+			not = { has_country_flag = Arms_Industry }
+		}
+		timeout_effect = { 
+			activate_mission = The_Beacon_Project
+			add_political_power = 10
+		}
+		cancel_effect = { 
+			remove_dynamic_modifier = { modifier = new_high_technology }
+		}
+	}
+	Weapons_Production_Lines = { 
+		icon = GFX_idea_merge_plant_missiles
+		fire_only_once = no
+		is_good = yes 
+		days_mission_timeout = 30
+		activation = { 
+			has_country_flag = Arms_Industry
+		}
+		available = {   
+			always = no                        
+		}
+		cancel_trigger = { 
+			not = { has_country_flag = Arms_Industry }
+		}
+		timeout_effect = { 
+			activate_mission = Weapons_Production_Lines
+			if = { 
+				limit = { is_special_project_completed = sp:sp_rockets_ground_to_air_missile }
+				add_equipment_to_stockpile = { type = sam_missile_equipment_1 amount = 20 producer = root }
+			}
+			if = { 
+				limit = { is_special_project_completed = sp:sp_rockets_flying_bomb }
+				add_equipment_to_stockpile = { type = guided_missile_equipment_1 amount = 10 producer = root }
+				if = { 
+					limit = { is_special_project_completed = sp:sp_rockets_ballistic_missile }
+					add_equipment_to_stockpile = { type = guided_missile_equipment_2 amount = 10 producer = root }
+					add_equipment_to_stockpile = { type = ballistic_missile_equipment_1 amount = 5 producer = root }
+				}
+				if = { 
+					limit = { is_special_project_completed = sp:sp_rockets_medium_range_ballistic_missile }
+					add_equipment_to_stockpile = { type = guided_missile_equipment_3 amount = 10 producer = root }
+					add_equipment_to_stockpile = { type = ballistic_missile_equipment_2 amount = 5 producer = root }
+				}
+			}
+			if = {
+				limit = { is_special_project_completed = sp:sp_nuclear_warheads }
+				add_equipment_to_stockpile = { type = nuclear_missile_equipment_1 amount = 1 producer = root }
+				if = { 
+					limit = { is_special_project_completed = sp:sp_rockets_long_range_ballistic_missile }
+					add_equipment_to_stockpile = { type = nuclear_missile_equipment_2 amount = 1 producer = root }
+				}
+			}
+		}
+	}
+ # 科研	
+	Planning_Department = {
+		icon = GFX_idea_research
+		visible = {	not = { has_country_flag = Planning_Department }}
+		available = {
+			has_tech = electronic_mechanical_engineering
+			has_tech = improved_machine_tools
+		}
+
+		cost = 50
+
+		fire_only_once = no
+		ai_will_do = { 
+			base = 0
+		}
+		complete_effect = { 
+			add_research_slot = 2 
+			activate_mission = Blueprint_Program
+			add_dynamic_modifier = { modifier = technology_laboratory }
+			set_country_flag = Planning_Department
+		}
+	}
+	
+	Planning_Department_0 = { 
+		icon = GFX_idea_research
+		days_remove = 0
+		fire_only_once = no
+		visible = {  has_country_flag = Planning_Department }
+		ai_will_do = { factor = 0 }	
+		complete_effect = { 
+			clr_country_flag = Planning_Department
+			add_research_slot = -2
+		}
+	}
+	
+	Blueprint_Program = { 
+		icon = GFX_idea_blueprint
+		fire_only_once = no
+		is_good = yes                    
+		days_mission_timeout = 30
+		activation = { 
+			has_country_flag = Planning_Department
+		}
+		available = {   
+			always = no                        
+		}
+		cancel_trigger = { 
+			not = { has_country_flag = Planning_Department }
+		}
+		timeout_effect = { 
+			activate_mission = Blueprint_Program
+			add_breakthrough_progress = {
+                specialization = specialization_land
+                value = 1
+            }
+            add_breakthrough_progress = {
+                specialization = specialization_air
+                value = 1
+            }
+            add_breakthrough_progress = {
+                specialization = specialization_naval
+                value = 1
+            }
+            add_breakthrough_progress = {
+                specialization = specialization_nuclear
+                value = 1
+            }
+		}
+		cancel_effect = { 
+			remove_dynamic_modifier = { modifier = technology_laboratory }
+		}
+	}
+ # 陆参	
+	Army_Staff = { 
+		icon = GFX_idea_military_academy
+		visible = { not = { has_country_flag = Army_Staff }}
+		available = { 
+			has_tech = tech_military_police
+		}
+
+		cost = 75
+
+		fire_only_once = no
+		ai_will_do = { 
+			base = 0
+		}
+		complete_effect = { 
+			activate_mission = All_military_drill
+			add_dynamic_modifier = { modifier = quality_of_soldiers }
+			set_country_flag = Army_Staff
+		}
+	}
+	
+	Army_Staff_0 = { 
+		icon = GFX_idea_military_academy
+		days_remove = 0
+		fire_only_once = no
+		visible = { has_country_flag = Army_Staff }
+		ai_will_do = { factor = 0 }	
+		complete_effect = { 
+			clr_country_flag = Army_Staff
+		}
+	}
+	
+	All_military_drill = { 
+		icon = GFX_idea_army_training
+		fire_only_once = no
+		is_good = yes                    
+		days_mission_timeout = 30
+		activation = { 
+			has_country_flag = Army_Staff
+		}
+		available = {   
+			always = no                        
+		}
+		cancel_trigger = { 
+			not = { has_country_flag = Army_Staff }
+		}
+		timeout_effect = { 
+			army_experience = 25
+			navy_experience = 25
+			air_experience = 25
+			activate_mission = All_military_drill 
+		}
+		cancel_effect = { 
+			remove_dynamic_modifier = { modifier = quality_of_soldiers }
+		}
+	}
+ # 雷达	
+	Radar_Detection = {
+		icon = GFX_idea_air_defence_system
+		visible = { not = { has_country_flag = Radar_Detection }}
+		available = { 
+			has_tech = basic_fire_control_system
+			has_tech = radio_detection
+			has_done_agency_upgrade = upgrade_form_department
+		}
+
+		cost = 100
+
+		fire_only_once = no 
+		ai_will_do = { factor = 0 }	
+		complete_effect = { 
+			activate_mission = Radar_Detection_on
+			add_dynamic_modifier = { modifier = radar_warning }
+			set_country_flag = Radar_Detection
+		}
+	}
+	
+	Radar_Detection_0 = { 
+		icon = GFX_idea_air_defence_system
+		days_remove = 0
+		fire_only_once = no
+		visible = { has_country_flag = Radar_Detection } 
+		ai_will_do = { factor = 0 }	
+		complete_effect = { 
+			clr_country_flag = Radar_Detection
+		}
+	}
+	
+	Radar_Detection_on = { 
+		icon = GFX_idea_take_readings
+		fire_only_once = no
+		is_good = yes                    
+		days_mission_timeout = 30
+		activation = { 
+			has_country_flag = Radar_Detection
+		}
+		available = {   
+			always = no                        
+		}
+		cancel_trigger = { 
+			not = { has_country_flag = Radar_Detection }
+		}
+		timeout_effect = { 
+			activate_mission = Radar_Detection_on
+		}
+		cancel_effect = { 
+			remove_dynamic_modifier = { modifier = radar_warning }
+		}
+	}
+ # 卫星	
+	satellite_reconnaissance = { 
+		icon = GFX_idea_Connecting_Satellites
+		visible = { not = { has_country_flag = satellite_reconnaissance } }
+		available = {
+			has_tech = computing_machine
+			has_done_agency_upgrade = upgrade_form_department
+		}
+
+		cost = 100
+
+		fire_only_once = no 
+		ai_will_do = { factor = 0 }	
+		complete_effect = { 
+			activate_mission = satellite_on
+			add_dynamic_modifier = { modifier = military_satellite }
+			set_country_flag = satellite_reconnaissance
+		}
+	}
+	
+	satellite_reconnaissance_0 = { 
+		icon = GFX_idea_Connecting_Satellites
+		days_remove = 0
+		fire_only_once = no
+		visible = { has_country_flag = satellite_reconnaissance } 
+		ai_will_do = { factor = 0 }	
+		complete_effect = { 
+			clr_country_flag = satellite_reconnaissance
+		}
+	}
+
+	satellite_on = { 
+		icon = GFX_idea_scanning
+		fire_only_once = no
+		is_good = yes                    
+		days_mission_timeout = 30
+		activation = { 
+			has_country_flag = satellite_reconnaissance
+		}
+		available = {   
+			always = no                        
+		}
+		cancel_trigger = { 
+			not = { has_country_flag = satellite_reconnaissance }
+		}
+		timeout_effect = { 
+			activate_mission = satellite_on
+			add_command_power = 25
+		}
+		cancel_effect = { 
+			remove_dynamic_modifier = { modifier = military_satellite }
+		}
+	}
+
+}

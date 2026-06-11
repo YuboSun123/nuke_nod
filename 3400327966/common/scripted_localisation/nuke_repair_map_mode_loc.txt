@@ -1,0 +1,34 @@
+# 地图模式中用于辐射等级文本的 scripted localisation。
+# 这里依赖 FROM 作用域上的 radiation_var，通常由地图模式或 GUI 预先写入临时变量。
+# 阈值按高、中、低、无四档选择对应本地化键。
+custom_localization = {
+	name = GetNukeRepairRadiationLevelCategory
+
+	text = {
+		trigger = {
+			FROM = {
+				check_variable = { var = radiation_var value = 12 compare = greater_than_or_equals }
+			}
+		}
+		localization_key = nuke_repair_radiation_level_high
+	}
+	text = {
+		trigger = {
+			FROM = {
+				check_variable = { var = radiation_var value = 6 compare = greater_than_or_equals }
+			}
+		}
+		localization_key = nuke_repair_radiation_level_medium
+	}
+	text = {
+		trigger = {
+			FROM = {
+				check_variable = { var = radiation_var value = 0.01 compare = greater_than_or_equals }
+			}
+		}
+		localization_key = nuke_repair_radiation_level_low
+	}
+	text = {
+		localization_key = nuke_repair_radiation_level_none
+	}
+}

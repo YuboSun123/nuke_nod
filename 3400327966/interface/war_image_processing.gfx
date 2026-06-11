@@ -1,0 +1,45 @@
+
+spriteTypes = {
+	
+	spriteType = {
+		name = "GFX_global_notice_icons"
+		texturefile = "gfx/interface/alerts/global_notice_icons.dds"
+	}
+	spriteType = {
+		name = "GFX_close_button"
+		texturefile = "gfx/interface/alerts/close_button.dds"
+	}
+	spriteType = {
+		name = "GFX_country_window_bg"
+		texturefile = "gfx/interface/alerts/country_window_bg.dds"
+	}
+	spriteType = {
+		name = "GFX_state_window_bg"
+		texturefile = "gfx/interface/alerts/state_window_bg.dds"
+	}
+	spriteType = {
+		name = "GFX_state_framework"
+		texturefile = "gfx/interface/alerts/state_framework.dds"
+	}
+	spriteType = {
+		name = "GFX_wasteland_framework"
+		texturefile = "gfx/interface/alerts/wasteland_framework.dds"
+	}
+	spriteType = {
+		name = "GFX_country_framework"
+		texturefile = "gfx/interface/alerts/country_framework.dds"
+	}
+	spriteType = {
+		name = "GFX_priority_icon_btn"
+		texturefile = "gfx/interface/alerts/priority_icon_btn.dds"
+	}
+	spriteType = {
+		name = "GFX_war_escape_icon"
+		texturefile = "gfx/interface/alerts/war_escape_icon.dds"
+	}
+	spriteType = {
+		name = "GFX_bop_indicator"
+		texturefile = "gfx/interface/bop/bop_indicator.dds"
+		noOfFrames = 2
+	}
+}

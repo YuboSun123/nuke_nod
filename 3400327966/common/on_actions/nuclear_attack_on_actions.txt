@@ -1,0 +1,612 @@
+#-------------------------------
+# 核打击系统
+#-------------------------------
+on_actions = {
+	on_startup = {
+		effect = {
+			set_global_flag = killed_population_set
+			set_global_flag = radiation_var_set
+
+			set_variable = { global.people_death_by_nukes = 0.0 }
+			set_variable = { global.people_death_by_nukes_radiation = 0.0 }
+			set_variable = { global.people_death_by_war = 0.0 }
+
+			set_variable = { global.units_killed_by_nukes = 0.0 }
+			set_variable = { global.units_killed_by_radiation = 0.0 }
+			set_variable = { global.units_killed_by_war = 0.0 }
+
+			set_variable = { global.died_in_mil_crackdowns = 0.0 }
+
+			every_state = {
+				set_variable = { state_number_of_people_killed = 0.0 }
+				set_variable = { state_total_of_people_killed = 0.0 }
+			}
+			every_country = {
+				set_variable = { total_casualties_k = 0.0 }
+				set_variable = { mil_casualties_k = 0.0 }
+				set_variable = { civ_casualties_k = 0.0 }
+
+				set_variable = { suppress_the_rebels_k = 0.0 }
+			}
+		}
+	}
+
+	on_nuke_drop = {
+        effect = {
+			ROOT = { 
+				if = {
+					limit = {
+						NOT = { has_idea = nuclear_state_idea }
+					}
+					add_ideas = nuclear_state_idea
+					news_event = { id = publication_nuclear.2 days = 4 }
+				}
+			}
+			
+			FROM = { 
+				# 仅在被核打击州计算人口/辐射参数，避免 on_nuke_drop 反复遍历所有州
+				if = { # 人口伤亡：关闭
+					limit = {
+						has_game_rule = {
+							rule = nukes_kiled_population
+							option = RULE_NUKES_KILED_POPULATION_CLOTURE
+						}
+					}
+					set_variable = { var = killed_population_multiplied value = 0.0 }
+				}
+				else_if = { # 人口伤亡：开启
+					limit = {
+						has_game_rule = {
+							rule = nukes_kiled_population
+							option = RULE_NUKES_KILED_POPULATION_OPEN
+						}
+					}
+					if = {
+						limit = { has_dynamic_modifier = { modifier = fallout_atomic } }
+						set_variable = { var = killed_population_multiplied value = -35.0 }
+					}
+					else_if = {
+						limit = { has_dynamic_modifier = { modifier = fallout_thermonuclear } }
+						set_variable = { var = killed_population_multiplied value = -80.0 }
+					}
+					else = { 
+						set_variable = { var = killed_population_multiplied value = 0.0 }
+					}
+				}
+				
+				if = { # 辐射：关闭
+					limit = {
+						has_game_rule = {
+							rule = nuke_radiation_level
+							option = RULE_NUKE_RADIATION_LEVEL_CLOTURE
+						}
+					}
+					set_variable = { var = radiation_var_on_nuke value = 0.0 }
+				}
+				else_if = { # 辐射：开启
+					limit = {
+						has_game_rule = {
+							rule = nuke_radiation_level
+							option = RULE_NUKE_RADIATION_LEVEL_OPEN
+						}
+					}
+					if = {
+						limit = { has_dynamic_modifier = { modifier = fallout_atomic } }
+						set_variable_to_random = {
+                            var = radiation_var_on_nuke
+                            min = 7.5
+                            max = 10
+                            integer = no
+                        }
+					}
+					else_if = {
+						limit = { has_dynamic_modifier = { modifier = fallout_thermonuclear } }
+						set_variable_to_random = {
+                            var = radiation_var_on_nuke
+                            min = 10
+                            max = 15
+                            integer = no
+                        }
+					}
+					else = { 
+						set_variable = { var = radiation_var_on_nuke value = 0.0 }
+					}
+				}
+
+				set_temp_variable = {
+					var = killed_population
+					value = state_population_k
+				}
+				multiply_temp_variable = {
+					var = killed_population
+					value = killed_population_multiplied
+				}
+				if = {
+					limit = { check_variable = { var = killed_population value = 0 compare = greater_than } }
+					set_temp_variable = { var = killed_population value = 0 }
+				}
+				set_temp_variable = { var = state_population_floor_people value = state_population_k }
+				multiply_temp_variable = { var = state_population_floor_people value = -1000 }
+				if = {
+					limit = { check_variable = { var = killed_population value = state_population_floor_people compare = less_than } }
+					set_temp_variable = { var = killed_population value = state_population_floor_people }
+				}
+				add_manpower = killed_population
+				
+				if = { # 原子弹打击参数
+					limit = { 
+						has_dynamic_modifier = { modifier = fallout_atomic }
+						has_game_rule = {
+							rule = nuke_radiation_level
+							option = RULE_NUKE_RADIATION_LEVEL_OPEN
+						}
+					}
+					if = {
+						limit = {
+							NOT = {
+								has_state_flag = has_radiation
+							}
+						}
+						add_dynamic_modifier = { modifier = radiation_state_modifier }
+						set_state_flag = has_radiation
+						set_variable = {
+							var = radiation_var
+							value = 0.1
+						}
+					}
+					else_if = { 
+						limit = { 
+							has_state_flag = has_radiation
+							has_dynamic_modifier = { modifier = neighbor_radiation_state_modifier }
+						}
+						remove_dynamic_modifier = { modifier = neighbor_radiation_state_modifier }
+						add_dynamic_modifier = { modifier = radiation_state_modifier }
+						set_variable = {
+							var = radiation_var
+							value = 0.1
+						}
+					}
+					else_if = { 
+						limit = { 
+							has_state_flag = has_radiation
+							has_dynamic_modifier = { modifier = thermo_radiation_state_modifier }
+						}
+						remove_dynamic_modifier = { modifier = radiation_state_modifier }
+						set_variable = {
+							var = radiation_var
+							value = 0.1
+						}
+					}
+				}
+				if = { # 热核打击参数
+					limit = { 
+						has_dynamic_modifier = { modifier = fallout_thermonuclear } 
+						has_game_rule = {
+							rule = nuke_radiation_level
+							option = RULE_NUKE_RADIATION_LEVEL_OPEN
+						}
+					}
+					if = {
+						limit = {
+							NOT = {
+								has_state_flag = has_radiation
+							}
+						}
+						add_dynamic_modifier = { modifier = thermo_radiation_state_modifier }
+						set_state_flag = has_radiation
+						set_variable = {
+							var = radiation_var
+							value = 0.1
+						}
+
+						save_wasteland_original_category = yes
+						reset_wasteland_rebuild_state = yes
+						# 核废土：保留拥有者，但让该州严重瘫痪
+						set_state_flag = nuke_repair_wasteland_state
+						set_demilitarized_zone = yes
+						set_state_category = nuke_repair_wasteland
+						every_neighbor_state = { 
+		                    handle_neighbor_radiation_effects = yes
+	                    }
+					}
+					else_if = {
+						limit = { 
+							has_state_flag = has_radiation
+							has_dynamic_modifier = { modifier = neighbor_radiation_state_modifier }
+						}
+						remove_dynamic_modifier = { modifier = neighbor_radiation_state_modifier }
+						add_dynamic_modifier = { modifier = thermo_radiation_state_modifier }
+						set_variable = {
+							var = radiation_var
+							value = 0.1
+						}
+						save_wasteland_original_category = yes
+						reset_wasteland_rebuild_state = yes
+						set_state_flag = nuke_repair_wasteland_state
+						set_demilitarized_zone = yes
+						set_state_category = nuke_repair_wasteland
+						every_neighbor_state = { 
+		                    handle_neighbor_radiation_effects = yes
+	                    }
+					}
+					else_if = { 
+						limit = { 
+							has_state_flag = has_radiation
+							has_dynamic_modifier = { modifier = radiation_state_modifier }
+						}
+						remove_dynamic_modifier = { modifier = radiation_state_modifier }
+						add_dynamic_modifier = { modifier = thermo_radiation_state_modifier }
+						set_variable = {
+							var = radiation_var
+							value = 0.1
+						}
+						save_wasteland_original_category = yes
+						reset_wasteland_rebuild_state = yes
+						set_state_flag = nuke_repair_wasteland_state
+						set_demilitarized_zone = yes
+						set_state_category = nuke_repair_wasteland
+						every_neighbor_state = { 
+		                    handle_neighbor_radiation_effects = yes
+	                    }
+					}
+				}
+
+				# 若首都所在州变为核废土，则迁移首都。
+				if = {
+					limit = {
+						has_state_flag = nuke_repair_wasteland_state
+						is_capital = yes
+					}
+					save_event_target_as = nuke_repair_destroyed_capital_state
+					owner = {
+						save_event_target_as = nuke_repair_capital_owner
+						set_temp_variable = { var = nuke_repair_found_new_capital value = 0 }
+						set_temp_variable = { var = nuke_repair_best_capital_vp value = -1 }
+						set_temp_variable = { var = nuke_repair_best_capital_pop value = -1 }
+
+						# 优先选择：己方拥有且为核心的州中，胜利点最高者。
+						if = {
+							limit = {
+								any_owned_state = {
+									is_capital = no
+									is_core_of = event_target:nuke_repair_capital_owner
+									NOT = { has_state_flag = nuke_repair_wasteland_state }
+									NOT = { has_state_category = nuke_repair_wasteland }
+								}
+							}
+							every_owned_state = {
+								limit = {
+									is_capital = no
+									is_core_of = event_target:nuke_repair_capital_owner
+									NOT = { has_state_flag = nuke_repair_wasteland_state }
+									NOT = { has_state_category = nuke_repair_wasteland }
+								}
+								set_temp_variable = { var = nuke_repair_candidate_capital_vp value = victory_points }
+								set_temp_variable = { var = nuke_repair_candidate_capital_pop value = state_population_k }
+
+								if = {
+									limit = {
+										check_variable = { var = nuke_repair_candidate_capital_vp value = nuke_repair_best_capital_vp compare = greater_than }
+									}
+									set_temp_variable = { var = nuke_repair_best_capital_vp value = nuke_repair_candidate_capital_vp }
+									set_temp_variable = { var = nuke_repair_best_capital_pop value = nuke_repair_candidate_capital_pop }
+									set_temp_variable = { var = nuke_repair_found_new_capital value = 1 }
+									event_target:nuke_repair_capital_owner = { set_capital = { state = PREV } }
+								}
+								else_if = {
+									limit = {
+										check_variable = { var = nuke_repair_candidate_capital_vp value = nuke_repair_best_capital_vp compare = equals }
+										check_variable = { var = nuke_repair_candidate_capital_pop value = nuke_repair_best_capital_pop compare = greater_than }
+									}
+									set_temp_variable = { var = nuke_repair_best_capital_pop value = nuke_repair_candidate_capital_pop }
+									set_temp_variable = { var = nuke_repair_found_new_capital value = 1 }
+									event_target:nuke_repair_capital_owner = { set_capital = { state = PREV } }
+								}
+							}
+						}
+
+						# 兜底：任意己方拥有且非废土的州（胜利点最高者）。
+						else_if = {
+							limit = {
+								any_owned_state = {
+									is_capital = no
+									NOT = { has_state_flag = nuke_repair_wasteland_state }
+									NOT = { has_state_category = nuke_repair_wasteland }
+								}
+							}
+							set_temp_variable = { var = nuke_repair_best_capital_vp value = -1 }
+							set_temp_variable = { var = nuke_repair_best_capital_pop value = -1 }
+							every_owned_state = {
+								limit = {
+									is_capital = no
+									NOT = { has_state_flag = nuke_repair_wasteland_state }
+									NOT = { has_state_category = nuke_repair_wasteland }
+								}
+								set_temp_variable = { var = nuke_repair_candidate_capital_vp value = victory_points }
+								set_temp_variable = { var = nuke_repair_candidate_capital_pop value = state_population_k }
+								if = {
+									limit = {
+										check_variable = { var = nuke_repair_candidate_capital_vp value = nuke_repair_best_capital_vp compare = greater_than }
+									}
+									set_temp_variable = { var = nuke_repair_best_capital_vp value = nuke_repair_candidate_capital_vp }
+									set_temp_variable = { var = nuke_repair_best_capital_pop value = nuke_repair_candidate_capital_pop }
+									set_temp_variable = { var = nuke_repair_found_new_capital value = 1 }
+									event_target:nuke_repair_capital_owner = { set_capital = { state = PREV } }
+								}
+								else_if = {
+									limit = {
+										check_variable = { var = nuke_repair_candidate_capital_vp value = nuke_repair_best_capital_vp compare = equals }
+										check_variable = { var = nuke_repair_candidate_capital_pop value = nuke_repair_best_capital_pop compare = greater_than }
+									}
+									set_temp_variable = { var = nuke_repair_best_capital_pop value = nuke_repair_candidate_capital_pop }
+									set_temp_variable = { var = nuke_repair_found_new_capital value = 1 }
+									event_target:nuke_repair_capital_owner = { set_capital = { state = PREV } }
+								}
+							}
+						}
+
+						# 强制迁都后的短期行政崩溃（临时惩罚）。
+						if = {
+							limit = {
+								check_variable = { var = nuke_repair_found_new_capital value = 1 compare = equals }
+							}
+							if = {
+								limit = { has_idea = nuke_repair_admin_collapse_idea }
+								remove_ideas = nuke_repair_admin_collapse_idea
+							}
+							add_timed_idea = { idea = nuke_repair_admin_collapse_idea days = 30 }
+						}
+					}
+				}
+				if = { # 部队伤害参数
+					limit = { 
+						has_game_rule = {
+							rule = nukes_army_damage
+							option = RULE_NUKES_ARMY_DAMAGE_OPEN
+						}
+					}
+					update_nukes_strike_damage_to_units = yes
+				}
+				if = { # 建筑伤害参数
+					limit = {
+						has_game_rule = {
+							rule = nukes_build_damage
+							option = RULE_NUKES_BUILD_DAMAGE_OPEN
+						}
+					}
+					update_of_building_damage = yes
+				}
+
+				add_to_variable = {
+					var = radiation_var
+					value = radiation_var_on_nuke
+				}
+				update_radiation_effects = yes
+				
+				multiply_temp_variable = {
+					var = killed_population
+					value = -0.001
+				}
+				add_to_variable = { global.people_death_by_nukes = killed_population }
+				# 同时把平民伤亡累计到州拥有国（单位：K）
+				owner = {
+					add_to_variable = { civ_casualties_k = killed_population }
+					add_to_variable = { total_casualties_k = killed_population }
+				}
+			}
+			every_country = {
+				limit = {
+					NOT = { has_war_with = ROOT }
+					any_controlled_state = {
+						has_dynamic_modifier = { modifier = neighbor_radiation_state_modifier }
+					}
+				}
+				set_country_flag = radiation_affected_by_@ROOT
+				set_variable = { radiation_affected_days = 0 }
+			}
+        }
+    }
+
+	on_daily = {
+		effect = {
+			every_controlled_state = {
+				limit = {
+					has_state_flag = has_radiation
+				}
+				set_temp_variable = {
+					var = 2_percentual
+					value = radiation_var
+				}
+				multiply_temp_variable = {
+					var = 2_percentual
+					value = 0.975
+				}
+				set_variable = {
+					var = radiation_var
+					value = 2_percentual
+				}
+				add_to_variable = {
+					var = radiation_var
+					value = -0.01
+				}
+				update_radiation_effects = yes
+				
+				if = {
+                    limit = { 
+                        has_game_rule = {
+                            rule = nukes_army_damage
+                            option = RULE_NUKES_ARMY_DAMAGE_OPEN
+                        }
+                    }
+                    update_radiation_damage_to_units = yes
+                }
+
+				if = {
+					limit = {
+						check_variable = {
+							var = radiation_var
+							value = 0.01
+							compare = less_than
+						}
+					}
+					clr_state_flag = has_radiation
+					clear_variable = radiation_var
+				}
+				set_temp_variable = {
+					var = killed_population
+					value = state_population_k
+				}
+				multiply_temp_variable = {
+					var = killed_population
+					value = -0.196
+				}
+				multiply_temp_variable = {
+					var = killed_population
+					value = radiation_var
+				}
+				if = {
+					limit = { check_variable = { var = killed_population value = 0 compare = greater_than } }
+					set_temp_variable = { var = killed_population value = 0 }
+				}
+				set_temp_variable = { var = state_population_floor_people value = state_population_k }
+				multiply_temp_variable = { var = state_population_floor_people value = -1000 }
+				if = {
+					limit = { check_variable = { var = killed_population value = state_population_floor_people compare = less_than } }
+					set_temp_variable = { var = killed_population value = state_population_floor_people }
+				}
+				add_manpower = killed_population
+
+				multiply_temp_variable = {
+					var = killed_population
+					value = -0.001
+				}
+				add_to_variable = { global.people_death_by_nukes_radiation = killed_population }
+				# 每日辐射死亡计入州拥有国的平民伤亡（单位：K）
+				owner = {
+					add_to_variable = { civ_casualties_k = killed_population }
+					add_to_variable = { total_casualties_k = killed_population }
+				}
+			}
+			every_country = {
+				limit = {
+					has_country_flag = radiation_affected_by_@ROOT
+				}
+				add_to_variable = { radiation_affected_days = 1 }
+				if = {
+					limit = {
+						check_variable = { radiation_affected_days > 2 } 
+					}
+					declare_war_on = {
+						target = ROOT
+						type = annex_everything
+					}
+					clr_country_flag = radiation_affected_by_@ROOT 
+					clear_variable = radiation_affected_days 
+				}
+			}
+			# 轰炸伤亡与标记：按州扫描一次，避免 every_country + every_state 的 O(C*S) 嵌套
+			every_state = {
+				if = {
+					limit = {
+						days_since_last_strategic_bombing < 1
+					}
+					add_dynamic_modifier = { modifier = bombing_for_state_modifier }
+					update_bombing_deaths = yes
+				}
+				if = {
+					limit = {
+						NOT = { has_dynamic_modifier = { modifier = bombing_for_state_modifier } }
+					}
+					clear_variable = state_number_of_people_killed
+				}
+			}
+
+			every_country = {
+				limit = {
+					any_controlled_state = {
+						OR = {
+							has_state_flag = nuke_repair_wasteland_state
+							has_state_category = nuke_repair_wasteland
+						}
+					}
+				}
+				update_country_rebuild_projection = yes
+			}
+
+			every_state = {
+				limit = {
+					OR = {
+						has_state_flag = nuke_repair_wasteland_state
+						has_state_category = nuke_repair_wasteland
+					}
+				}
+				wasteland_state_construction = yes
+
+				# AI 无法点击 scripted GUI 按钮，因此在满足恢复条件后按日概率自动执行恢复。
+				if = {
+					limit = {
+						check_variable = { wasteland_rebuild_ready > 0 }
+						owner = {
+							is_ai = yes
+						}
+					}
+					random = {
+						chance = 35
+						complete_wasteland_restore_with_reward = yes
+					}
+				}
+			}
+
+			# 仅在“最近发生过抵抗活动/破坏”时才进行清剿（州级短期窗口）
+			every_controlled_state = {
+				# 1) 倒计时衰减
+				if = {
+					limit = { check_variable = { var = recent_resistance_activity_timer value = 0 compare = greater_than } }
+					add_to_variable = { recent_resistance_activity_timer = -1 }
+					if = {
+						limit = { check_variable = { var = recent_resistance_activity_timer value = 0 compare = less_than } }
+						clear_variable = recent_resistance_activity_timer
+					}
+				}
+
+				# 2) 近似检测：州内存在活跃抵抗时，按抵抗强度概率“点亮”近期活动窗口
+				if = {
+					limit = {
+						has_resistance = yes
+						has_active_resistance = yes
+						not = { occupation_law = no_garrison }
+						check_variable = { var = recent_resistance_activity_timer value = 1 compare = less_than }
+					}
+					if = {
+						limit = { check_variable = { resistance > 50 } }
+						random = {
+							chance = 80
+							set_variable = { var = recent_resistance_activity_timer value = 3 }
+						}
+					}
+					else_if = {
+						limit = { check_variable = { resistance > 25 } }
+						random = {
+							chance = 40
+							set_variable = { var = recent_resistance_activity_timer value = 3 }
+						}
+					}
+					else = {
+						random = {
+							chance = 15
+							set_variable = { var = recent_resistance_activity_timer value = 3 }
+						}
+					}
+				}
+
+				# 3) 清剿：effect 内会检查 recent_resistance_activity_timer > 0
+				update_Kill_to_establish_authority = yes
+			}
+
+			recompute_conventional_mil_per_country = yes
+			recompute_conventional_units_total = yes
+			
+			update_casualty_display_variables = yes
+		} 
+	}
+}

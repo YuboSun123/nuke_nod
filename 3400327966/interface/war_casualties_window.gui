@@ -1,0 +1,647 @@
+guiTypes = {
+	
+	containerWindowType = {
+		name = "global_notice_window"
+		position = { x = 720 y = 38 }
+		size = { width=100%% height=100%% }
+		moveable = no
+		Orientation = UPPER_LEFT
+		
+		buttonType = {
+			name = "icon"
+			spriteType = "GFX_global_notice_icons"
+			position = { x = 0 y = 0 }
+			pdx_tooltip = statistics_tt
+			pdx_tooltip_delayed = statistics_tt_delayed
+		}
+		iconType = {
+			name ="red_alert_glow"
+			spriteType = "GFX_red_alert_glow"	
+			position = { x =0 y = 0 }
+			alwaystransparent = yes
+		}	
+		iconType = {
+			name ="yellow_alert_glow"
+			spriteType = "GFX_yellow_alert_glow"	
+			position = { x =0 y = 0 }
+			alwaystransparent = yes
+		}
+	}
+
+	containerWindowType = {
+		name = "list_of_countries_window"
+		size = { width = 862 height = 470 }
+		moveable = yes
+		orientation = center
+		origo = center
+
+		background = {
+			name = "Background"
+			quadTextureSprite ="GFX_tiled_window_transparent"
+		}
+		iconType = {
+			name = "countries_window_bg"
+			quadTextureSprite = "GFX_country_window_bg"
+			alwaystransparent = yes
+		}
+		buttonType = {
+			name = "close_button"	
+			position = {x= -255 y= 4 }	
+			spriteType = "GFX_close_button"
+			orientation = "UPPER_RIGHT"
+			shortcut = "ESCAPE"
+			clicksound = click_close
+			pdx_tooltip = "close_window_tt"
+		}
+		
+		containerWindowType = {
+			name = "refresh_header"
+			position = { x = 419 y = 7 }
+			
+			buttonType = {
+				name = "sort_total"
+				position = { x = 0 y = 0 }
+				spriteType = "GFX_consolidate"
+				orientation = "UPPER_RIGHT"
+				clicksound = click_default
+				scale = 0.9
+				pdx_tooltip = "sort_total_tt"
+			}
+
+			buttonType = {
+				name = "settings"
+				position = { x = 45 y = -2 }
+				spriteType = "GFX_warscore_icon"
+				orientation = "UPPER_RIGHT"
+				clicksound = click_default
+				frame = 1
+				pdx_tooltip = "switch_wasteland_state_tt"
+			}
+			buttonType = {
+				name = "settings_1"
+				position = { x = 45 y = -2 }
+				spriteType = "GFX_warscore_icon"
+				orientation = "UPPER_RIGHT"
+				clicksound = click_default
+				frame = 2
+				pdx_tooltip = "switch_state_tt"
+			}
+			
+			buttonType = {
+				name = "state_total_0"
+				position = { x = 24 y = 0 }
+				spriteType = "GFX_pinned_theatre_checkbox"
+				orientation = "UPPER_RIGHT"
+				clicksound = click_default
+				scale = 0.85
+				frame = 1
+				pdx_tooltip = "state_total_0_tt"
+			}
+			buttonType = {
+				name = "state_total_1"
+				position = { x = 24 y = 0 }
+				spriteType = "GFX_pinned_theatre_checkbox"
+				orientation = "UPPER_RIGHT"
+				clicksound = click_default
+				scale = 0.85
+				frame = 2
+				pdx_tooltip = "state_total_1_tt"
+			}
+		}
+
+		containerWindowType = {
+			name = "grid_window"
+			position = { x = 0 y = 35 }	
+			size = { width = 644 height = 422 }
+			verticalScrollbar = "right_vertical_slider"
+			
+			background = {
+				name = "Background"
+				spriteType ="GFX_combat_log_info_bg"
+			} 
+			gridboxtype = {
+				name = "country_grid"
+				position = { x = 14 y = 0 }
+				slotsize = { width = 40 height = 42 } 
+				max_slots = { x = 1 y = 1000 }
+			}
+		}
+		
+		containerWindowType = { 
+		    name = "global_report_window"
+			position = { x = 100 y = 70 }
+
+		    iconType = {
+			    name = "Background"
+			    quadTextureSprite ="GFX_tiled_window_transparent"
+			    alwaystransparent = yes
+		    }
+
+		    instantTextboxType = {
+		    	name = "global_report_text"
+		    	position = { x = 0 y = 0 }
+		    	font = "hoi_18mbs"
+		    	text = "global_report_tt"
+		    	format = center
+		    	fixedsize = yes
+		    }
+	    }
+
+		containerWindowType = { 
+		    name = "global_report_window_1"
+			position = { x = 25 y = 110 }
+
+		    iconType = {
+			    name = "Background"
+			    quadTextureSprite ="GFX_tiled_window_transparent"
+			    alwaystransparent = yes
+		    }
+
+		    instantTextboxType = {
+		    	name = "global_arm_text"
+		    	position = { x = 0 y = 0 }
+		    	font = "hoi_18mbs"
+		    	text = "global_arm_tt"
+		    	format = LEFT
+		    	maxWidth = 180
+		    }
+	    }
+		containerWindowType = { 
+		    name = "global_report_window_2"
+			position = { x = 216 y = 110 }
+
+		    iconType = {
+			    name = "Background"
+			    quadTextureSprite ="GFX_tiled_window_transparent"
+			    alwaystransparent = yes
+		    }
+
+		    instantTextboxType = {
+		    	name = "global_pop_text"
+		    	position = { x = 0 y = 0 }
+		    	font = "hoi_18mbs"
+		    	text = "global_pop_tt"
+		    	format = LEFT
+		    	maxWidth = 180
+		    }
+	    }
+		containerWindowType = { 
+		    name = "global_report_window_3"
+			position = { x = 25 y = 205 }
+
+		    iconType = {
+			    name = "Background"
+			    quadTextureSprite ="GFX_tiled_window_transparent"
+			    alwaystransparent = yes
+		    }
+
+		    instantTextboxType = {
+		    	name = "global_pop_text"
+		    	position = { x = 0 y = 0 }
+		    	font = "hoi_18mbs"
+		    	text = "global_rebel_tt"
+		    	format = LEFT
+		    	maxWidth = 180
+		    }
+	    }
+		containerWindowType = { 
+		    name = "global_report_window_4"
+			position = { x = 216 y = 205 }
+
+			iconType = {
+			    name = "Background"
+			    quadTextureSprite ="GFX_tiled_window_transparent"
+			    alwaystransparent = yes
+		    }
+
+			instantTextboxType = {
+		    	name = "global_refugee_text"
+		    	position = { x = 0 y = 0 }
+		    	font = "hoi_18mbs"
+		    	text = "global_refugee_tt"
+		    	format = LEFT
+		    	maxWidth = 180
+		    }
+		}
+
+		containerWindowType = { 
+			name = "country_details_window"
+			position = { x = 200 y = 130 }
+
+			iconType = {
+			    name = "Background"
+			    quadTextureSprite ="GFX_tiled_window_transparent"
+			    alwaystransparent = yes
+		    }
+			instantTextboxType = { 
+				name = "country_details_text"
+				position = { x = -184 y = 190 }
+				font = "hoi_18mbs"
+				text = "country_casualty_details_tt"
+				format = LEFT
+				maxWidth = 220
+			}
+		}
+
+		containerWindowType = { 
+			name = "mopping_up_window_2"
+			position = { x = 378 y = 130 }
+
+			iconType = {
+			    name = "Background"
+			    quadTextureSprite ="GFX_tiled_window_transparent"
+			    alwaystransparent = yes
+		    }
+			instantTextboxType = { 
+				name = "country_details_text"
+				position = { x = -154 y = 190 }
+				font = "hoi_18mbs"
+				text = "mopping_up_resistance_group_tt"
+				format = LEFT
+				maxWidth = 180
+			}
+		}
+	}
+
+	containerWindowType = {
+		name = "list_of_state_window"
+		size = { width = 224 height = 400 }
+		position = { x = 636 y = 2 }
+
+		background = {
+			name = "Background"
+			quadTextureSprite ="GFX_tiled_window_transparent"
+		}
+		iconType = {
+			name = "state_window_bg"
+			quadTextureSprite = "GFX_state_window_bg"
+			alwaystransparent = yes
+		}
+		containerWindowType = {
+			name = "grid_window"
+			position = { x = 10 y = 34 }
+			size = { width = 215 height = 352 }
+			verticalScrollbar = "right_vertical_slider"
+
+			background = {
+			    name = "Background"
+			    quadTextureSprite ="GFX_tiled_window_transparent"
+		    }
+
+			gridboxtype = {
+			    name = "state_grid"
+			    position = { x = 3 y = 0 }
+			    slotsize = { width = 196 height = 88 }
+			    max_slots = { x = 1 y = 1000 }
+		    }
+		}
+		containerWindowType = {
+			name = "refresh_header"
+			position = { x = 5 y = 5 }
+			
+			buttonType = {
+				name = "sort_refresh"
+				position = { x = 0 y = 0 }
+				spriteType = "GFX_priority_icon_btn"
+				orientation = "UPPER_RIGHT"
+				clicksound = click_default
+				scale = 0.9
+				pdx_tooltip = "sort_refresh_tt"
+			}
+		}
+	}
+	containerWindowType = {
+		name = "list_of_wasteland_state_window"
+		size = { width = 224 height = 400 }
+		position = { x = 636 y = 2 }
+
+		background = {
+			name = "Background"
+			quadTextureSprite ="GFX_tiled_window_transparent"
+		}
+		iconType = {
+			name = "wasteland_state_window_bg"
+			quadTextureSprite = "GFX_state_window_bg"
+			alwaystransparent = yes
+		}
+		containerWindowType = {
+			name = "grid_window"
+			position = { x = 10 y = 34 }
+			size = { width = 215 height = 352 }
+			verticalScrollbar = "right_vertical_slider"
+
+			background = {
+			    name = "Background"
+			    quadTextureSprite ="GFX_tiled_window_transparent"
+		    }
+
+			gridboxtype = {
+			    name = "wasteland_state_grid"
+			    position = { x = 3 y = 0 }
+			    slotsize = { width = 196 height = 88 }
+			    max_slots = { x = 1 y = 1000 }
+		    }
+		}
+		containerWindowType = {
+			name = "refresh_header"
+			position = { x = 5 y = 5 }
+			
+			buttonType = {
+				name = "sort_refresh"
+				position = { x = 0 y = 0 }
+				spriteType = "GFX_priority_icon_btn"
+				orientation = "UPPER_RIGHT"
+				clicksound = click_default
+				scale = 0.9
+				pdx_tooltip = "sort_refresh_tt"
+			}
+		}
+	}
+
+	containerWindowType = {
+		name = "state_grid_entry"
+		position = { x = 92 y = 0 }
+
+		buttonType = {
+			name = "state_frame"
+			spriteType = "GFX_state_framework"
+			position = { x = 0 y = 0 }
+			pdx_tooltip = "homeles_tt_delayed"
+			clicksound = click_default
+		}
+
+		instantTextboxType = {
+			name = "state_name"
+			position = { x = 4 y = 48 }
+			font = "hoi_16mbs"
+			text = "state_tt"
+			format = left
+			fixedsize = yes
+			maxWidth = 50
+			pdx_tooltip = "homeles_tt_delayed"
+		}
+		
+		instantTextboxType = { 
+			name = "homeles_text"
+			position = { x = 50 y = 12 }
+			font = "hoi_16mbs"
+			text = "pop_homeles_tt"
+			format = left
+			fixedsize = yes
+			maxWidth = 45
+		}
+		iconType = { 
+			name = "pop_homeles_icon"
+			quadTextureSprite = "GFX_war_escape_icon"
+			position = { x = 60 y = 40 }
+			pdx_tooltip = "homeles_tt"
+		}
+
+		instantTextboxType = {
+			name = "fleeing_text"
+			position = { x = 98 y = 12 }
+			font = "hoi_16mbs"
+			text = "pop_fleeing_tt"
+			format = left
+			fixedsize = yes
+			maxWidth = 45
+		}
+		iconType = { 
+			name = "pop_fleeing_icon"
+			quadTextureSprite = "GFX_decision_CHL_mapuche_liberate_isthmo_amerindia"
+			position = { x = 103 y = 40 }
+			pdx_tooltip = "fleeing_tt"
+		}
+
+		instantTextboxType = {
+			name = "settle_text"
+			position = { x = 146 y = 12 }
+			font = "hoi_16mbs"
+			text = "pop_settle_tt"
+			format = left
+			fixedsize = yes
+			maxWidth = 45
+		}
+		iconType = { 
+			name = "pop_settle_icon"
+			quadTextureSprite = "GFX_efficiency_icon"
+			position = { x = 148 y = 46 }
+			scale = 1.2
+			pdx_tooltip = "settle_tt"
+		}
+	}
+	containerWindowType = {
+		name = "wasteland_state_grid_entry"
+		position = { x = 94 y = 0 }
+
+		buttonType = {
+			name = "wasteland_state_frame"
+			spriteType = "GFX_wasteland_framework"
+			position = { x = 0 y = 0 }
+			clicksound = click_default
+		}
+
+		instantTextboxType = {
+			name = "wasteland_state_name"
+			position = { x = 112 y = 38 }
+			font = "hoi_16mbs"
+			text = "wasteland_state_tt"
+			format = left
+			fixedsize = yes
+			maxWidth = 85
+		}
+
+		instantTextboxType = {
+			name = "process_step_name"
+			position = { x = 136 y = 20 }
+			font = "hoi_16mbs"
+			text = "process_step_tt"
+			format = left
+			fixedsize = yes
+			maxWidth = 50
+		}
+
+		iconType = { 
+			name = "warning_icon"
+			quadTextureSprite = "GFX_shared_constructions"
+			position = { x = 69 y = 23 }
+			scale = 1.1
+			pdx_tooltip = "warning_Influence_tt"
+			pdx_tooltip_delayed = warning_Influence_txt
+		}
+		iconType = {
+			name = "warning_status_down"
+			quadTextureSprite = "GFX_unitlist_priority_icon_strip"
+			position = { x = 74 y = 40 }
+			frame = 1
+			pdx_tooltip = "warning_Influence_tt"
+			pdx_tooltip_delayed = warning_Influence_txt
+		}
+		iconType = {
+			name = "warning_status_0"
+			quadTextureSprite = "GFX_unitlist_priority_icon_strip"
+			position = { x = 74 y = 40 }
+			frame = 2
+			pdx_tooltip = "warning_Influence_tt"
+			pdx_tooltip_delayed = warning_Influence_txt
+		}
+		iconType = {
+			name = "warning_status_up"
+			quadTextureSprite = "GFX_unitlist_priority_icon_strip"
+			position = { x = 74 y = 40 }
+			frame = 3
+			pdx_tooltip = "warning_Influence_tt"
+			pdx_tooltip_delayed = warning_Influence_txt
+		}
+		
+		containerWindowType = { 
+			name = "progress_bar"
+			position = { x = 0 y = 0 }
+
+			iconType = {
+				name = "progress_1_off"
+				position = { x = 2 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 2
+			}
+			iconType = {
+				name = "progress_1_on"
+				position = { x = 2 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 1
+			}
+			iconType = {
+				name = "progress_2_off"
+				position = { x = 25 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 2
+			}
+			iconType = {
+				name = "progress_2_on"
+				position = { x = 25 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 1
+			}
+			iconType = {
+				name = "progress_3_off"
+				position = { x = 48 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 2
+			}
+			iconType = {
+				name = "progress_3_on"
+				position = { x = 48 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 1
+			}
+			iconType = {
+				name = "progress_4_off"
+				position = { x = 71 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 2
+			}
+			iconType = {
+				name = "progress_4_on"
+				position = { x = 71 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 1
+			}
+			iconType = {
+				name = "progress_5_off"
+				position = { x = 93 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 2
+			}
+			iconType = {
+				name = "progress_5_on"
+				position = { x = 93 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 1
+			}
+			iconType = {
+				name = "progress_6_off"
+				position = { x = 116 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 2
+			}
+			iconType = {
+				name = "progress_6_on"
+				position = { x = 116 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 1
+			}
+			iconType = {
+				name = "progress_7_off"
+				position = { x = 139 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 2
+			}
+			iconType = {
+				name = "progress_7_on"
+				position = { x = 139 y = 68 }
+				spriteType = "GFX_equipment_state_icon"
+				scale = 0.95
+				frame = 1
+			}
+			buttonType = {
+				name = "progress_Fini_off"
+				position = { x = 157 y = 60 }
+				spriteType = "GFX_bop_indicator"
+				scale = 0.95
+				frame = 1
+				pdx_tooltip = "nuke_repair_finish_tt"
+				pdx_tooltip_delayed = "wasteland_rebuild_resource_tt"
+			}
+			buttonType = {
+				name = "progress_Fini_on"
+				position = { x = 157 y = 60 }
+				spriteType = "GFX_bop_indicator"
+				scale = 0.95
+				frame = 2
+				pdx_tooltip = "nuke_repair_finish_tt"
+				pdx_tooltip_delayed = "wasteland_rebuild_resource_tt"
+			}
+		}
+	}
+	
+	containerWindowType = {
+		name = "country_grid_entry"
+		position = { x = 420 y = 0 }
+
+		buttonType = {
+			name = "country_frame"
+			spriteType = "GFX_country_framework"
+			position = { x = 0 y = 0 }
+		}
+
+		iconType = {
+			name = "flag"
+			quadTextureSprite = "GFX_flag_small2"
+			position = { x = 9 y = 5 }
+			pdx_tooltip = "national_flag_tt"
+		}
+		
+		instantTextboxType = {
+			name = "country_name"
+			position = { x = 58 y = 7 }
+			font = "hoi_16mbs"
+			text = "national_flag_tt"
+			format = left
+			fixedsize = yes
+			maxWidth = 128
+		}
+	}
+}
